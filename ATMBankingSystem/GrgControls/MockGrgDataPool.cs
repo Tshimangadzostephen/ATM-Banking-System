@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HostSimulator
+namespace GrgControls
 {
-    public class Class1
+    public class MockGrgDataPool
     {
     }
 }

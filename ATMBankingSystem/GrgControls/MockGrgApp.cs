@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ActiveXControl
+namespace GrgControls
 {
-    public class Class1
+    public class MockGrgApp
     {
     }
 }

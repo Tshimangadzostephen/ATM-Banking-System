@@ -16,6 +16,101 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.gitignore = .gitignore
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{B0B5E8F2-B99E-4AAE-8295-CCE28F69AA5F}"
+	ProjectSection(SolutionItems) = preProject
+		API_REFERENCE.md = API_REFERENCE.md
+		ARCHITECTURE.md = ARCHITECTURE.md
+		README.md = README.md
+		STATE_MACHINE.md = STATE_MACHINE.md
+		USER_GUIDE.md = USER_GUIDE.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "config", "config", "{9F82D6B9-77C8-42CA-BEF8-A72279EF07E2}"
+	ProjectSection(SolutionItems) = preProject
+		devices.json = devices.json
+		states.xml = states.xml
+		test-data.json = test-data.json
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{9E499F24-846B-4F8C-A42F-325524C9EEEE}"
+	ProjectSection(SolutionItems) = preProject
+		TEST_RESULTS.md = TEST_RESULTS.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{8B23E6FA-E3D7-4088-AD05-EE97CAF9522A}"
+	ProjectSection(SolutionItems) = preProject
+		build.bat = build.bat
+		install.bat = install.bat
+		run-demo.bat = run-demo.bat
+		uninstall.bat = uninstall.bat
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "unit", "unit", "{C633A44D-317C-4238-8206-4DBAF791B177}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "integration", "integration", "{6CE26C37-AE32-4D00-AAF9-1AA8FC576922}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UI", "UI", "{BFCDC0DC-EA1E-4505-B3F5-B4236D32619A}"
+	ProjectSection(SolutionItems) = preProject
+		index.hta = index.hta
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "reserved", "reserved", "{1C425E84-645D-4C43-AD94-F015A69CC6A6}"
+	ProjectSection(SolutionItems) = preProject
+		controlLoad.html = controlLoad.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "000", "000", "{73ACFCEB-931A-4A39-B2EB-223E8FC42ABB}"
+	ProjectSection(SolutionItems) = preProject
+		000.html = 000.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "136", "136", "{1C523B22-5A99-476D-8FA8-7074F37F41AD}"
+	ProjectSection(SolutionItems) = preProject
+		136.html = 136.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "137", "137", "{1F4662A7-BB3C-43D4-AB0C-A959CBDFA657}"
+	ProjectSection(SolutionItems) = preProject
+		137.html = 137.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "141", "141", "{610459B0-2622-430C-975B-454FD9BC22D3}"
+	ProjectSection(SolutionItems) = preProject
+		141.html = 141.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "395", "395", "{3A212B35-7120-4002-9E5A-A598EE706CDD}"
+	ProjectSection(SolutionItems) = preProject
+		395.html = 395.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "789", "789", "{807C8D14-ADC5-41C3-AE9F-757C292BD8A3}"
+	ProjectSection(SolutionItems) = preProject
+		789.html = 789.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "907", "907", "{DEA310D0-0259-4924-A795-4D30079BEFF7}"
+	ProjectSection(SolutionItems) = preProject
+		907.html = 907.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "909", "909", "{63995F3E-7FD9-451F-8E0D-FDACC1BC2CEB}"
+	ProjectSection(SolutionItems) = preProject
+		909.html = 909.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "766", "766", "{BA9F3B76-0DBC-40C6-B69C-FB8494B4868A}"
+	ProjectSection(SolutionItems) = preProject
+		766.html = 766.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "924", "924", "{B1287E31-8DAB-46F8-A990-520A3D6B23C8}"
+	ProjectSection(SolutionItems) = preProject
+		924.html = 924.html
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +136,26 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{2B788B70-BCFF-4EB5-98FC-7C8EE813BAA6} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{4E989AAA-6E1D-49CB-8B1A-B920C66FBA5D} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{973EFBE3-4152-4169-933B-0AD907465F67} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{6571C040-8184-47E5-8D47-0D3BDE8122C3} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{C633A44D-317C-4238-8206-4DBAF791B177} = {9E499F24-846B-4F8C-A42F-325524C9EEEE}
+		{6CE26C37-AE32-4D00-AAF9-1AA8FC576922} = {9E499F24-846B-4F8C-A42F-325524C9EEEE}
+		{BFCDC0DC-EA1E-4505-B3F5-B4236D32619A} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{1C425E84-645D-4C43-AD94-F015A69CC6A6} = {BFCDC0DC-EA1E-4505-B3F5-B4236D32619A}
+		{73ACFCEB-931A-4A39-B2EB-223E8FC42ABB} = {BFCDC0DC-EA1E-4505-B3F5-B4236D32619A}
+		{1C523B22-5A99-476D-8FA8-7074F37F41AD} = {BFCDC0DC-EA1E-4505-B3F5-B4236D32619A}
+		{1F4662A7-BB3C-43D4-AB0C-A959CBDFA657} = {BFCDC0DC-EA1E-4505-B3F5-B4236D32619A}
+		{610459B0-2622-430C-975B-454FD9BC22D3} = {BFCDC0DC-EA1E-4505-B3F5-B4236D32619A}
+		{3A212B35-7120-4002-9E5A-A598EE706CDD} = {BFCDC0DC-EA1E-4505-B3F5-B4236D32619A}
+		{807C8D14-ADC5-41C3-AE9F-757C292BD8A3} = {BFCDC0DC-EA1E-4505-B3F5-B4236D32619A}
+		{DEA310D0-0259-4924-A795-4D30079BEFF7} = {BFCDC0DC-EA1E-4505-B3F5-B4236D32619A}
+		{63995F3E-7FD9-451F-8E0D-FDACC1BC2CEB} = {BFCDC0DC-EA1E-4505-B3F5-B4236D32619A}
+		{BA9F3B76-0DBC-40C6-B69C-FB8494B4868A} = {BFCDC0DC-EA1E-4505-B3F5-B4236D32619A}
+		{B1287E31-8DAB-46F8-A990-520A3D6B23C8} = {BFCDC0DC-EA1E-4505-B3F5-B4236D32619A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9CB713DC-2986-4996-8FB4-F8371BA6DDB8}
