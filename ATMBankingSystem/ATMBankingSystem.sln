@@ -54,6 +54,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UI", "UI", "{BFCDC0DC-EA1E-4505-B3F5-B4236D32619A}"
 	ProjectSection(SolutionItems) = preProject
 		index.hta = index.hta
+		UI\index.hta = UI\index.hta
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "reserved", "reserved", "{1C425E84-645D-4C43-AD94-F015A69CC6A6}"
@@ -63,22 +64,22 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "reserved", "reserved", "{1C
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "000", "000", "{73ACFCEB-931A-4A39-B2EB-223E8FC42ABB}"
 	ProjectSection(SolutionItems) = preProject
-		000.html = 000.html
+		UI\000\000.html = UI\000\000.html
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "136", "136", "{1C523B22-5A99-476D-8FA8-7074F37F41AD}"
 	ProjectSection(SolutionItems) = preProject
-		136.html = 136.html
+		UI\136\136.html = UI\136\136.html
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "137", "137", "{1F4662A7-BB3C-43D4-AB0C-A959CBDFA657}"
 	ProjectSection(SolutionItems) = preProject
-		137.html = 137.html
+		UI\137\137.html = UI\137\137.html
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "141", "141", "{610459B0-2622-430C-975B-454FD9BC22D3}"
 	ProjectSection(SolutionItems) = preProject
-		141.html = 141.html
+		UI\141\141.html = UI\141\141.html
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "395", "395", "{3A212B35-7120-4002-9E5A-A598EE706CDD}"

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>State 766 - Balance Display</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #00BCD4 0%, #00ACC1 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .balance-container {
+            background: white;
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+            text-align: center;
+            min-width: 500px;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .title {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        .account-info {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+
+        .account-number {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .balance-display {
+            margin: 30px 0;
+            padding: 30px;
+            background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
+            border-radius: 15px;
+            color: white;
+        }
+
+        .balance-label {
+            font-size: 18px;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .balance-amount {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 10px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .currency-symbol {
+            font-size: 36px;
+        }
+
+        .available-balance {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+
+        .balance-date {
+            font-size: 14px;
+            color: #666;
+            margin: 20px 0;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 40px;
+        }
+
+        .button {
+            flex: 1;
+            padding: 15px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .print-button {
+            background: #2196F3;
+            color: white;
+        }
+
+            .print-button:hover {
+                background: #1976D2;
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            }
+
+        .another-button {
+            background: #4CAF50;
+            color: white;
+        }
+
+            .another-button:hover {
+                background: #45a049;
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            }
+
+        .finish-button {
+            background: #FF9800;
+            color: white;
+        }
+
+            .finish-button:hover {
+                background: #F57C00;
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            }
+
+        .mini-statement {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            text-align: left;
+        }
+
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+            .transaction-item:last-child {
+                border-bottom: none;
+            }
+
+        .transaction-date {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .transaction-amount {
+            font-weight: bold;
+        }
+
+            .transaction-amount.debit {
+                color: #f44336;
+            }
+
+            .transaction-amount.credit {
+                color: #4CAF50;
+            }
+    </style>
+</head>
+<body>
+    <div class="balance-container">
+        <div class="title">Account Balance</div>
+
+        <div class="account-info">
+            <div class="account-number">Account: ****9012</div>
+            <div class="account-number">Type: Current Account</div>
+        </div>
+
+        <div class="balance-display">
+            <div class="balance-label">Current Balance</div>
+            <div class="balance-amount">
+                <span class="currency-symbol">R</span>
+                <span id="balanceValue">1,500.00</span>
+            </div>
+            <div class="available-balance">
+                <div>Available Balance: R1,500.00</div>
+                <div>Overdraft Limit: R500.00</div>
+            </div>
+        </div>
+
+        <div class="mini-statement">
+            <div style="font-weight: bold; margin-bottom: 15px;">Recent Transactions</div>
+            <div class="transaction-item">
+                <span class="transaction-date">19/09 - Online Transfer</span>
+                <span class="transaction-amount credit">+ R250.00</span>
+            </div>
+            <div class="transaction-item">
+                <span class="transaction-date">18/09 - Card Payment</span>
+                <span class="transaction-amount debit">-R45.99</span>
+            </div>
+            <div class="transaction-item">
+                <span class="transaction-date">17/09 - ATM Withdrawal</span>
+                <span class="transaction-amount debit">-R100.00</span>
+            </div>
+        </div>
+
+        <div class="balance-date" id="dateTime"></div>
+
+        <div class="action-buttons">
+            <button class="button print-button" onclick="printBalance()">Print Balance</button>
+            <button class="button another-button" onclick="anotherTransaction()">Another Transaction</button>
+            <button class="button finish-button" onclick="finishTransaction()">Finish</button>
+        </div>
+    </div>
+
+    <script>
+        var GrgApp = null;
+        var GrgDataPool = null;
+        var timeoutTimer = null;
+        var initialized = false;
+
+        window.onload = function () {
+            setTimeout(initializeState, 100);
+        };
+
+        function initializeState() {
+            if (initialized) return;
+
+            // Get controls using the injected method
+            if (window.GetWebCtrl && typeof window.GetWebCtrl === "function") {
+                try {
+                    GrgApp = window.GetWebCtrl("GrgApp");
+                    GrgDataPool = window.GetWebCtrl("GrgDataPool");
+
+                    if (GrgApp && GrgDataPool) {
+                        initialized = true;
+                        OnStateEntry();
+                        return;
+                    }
+                } catch (e) {
+                    // Retry silently
+                }
+            }
+
+            // Retry after delay
+            setTimeout(initializeState, 100);
+        }
+
+        function OnStateEntry() {
+            if (GrgApp) {
+                GrgApp.LogEvent("Enter State 766 - Balance Display");
+            }
+
+            // Display current date/time
+            var now = new Date();
+            document.getElementById("dateTime").innerText =
+                "Balance as of: " + now.toLocaleDateString() + " " + now.toLocaleTimeString();
+
+            // Get and display balance
+            var balance = "1500.00"; // default
+            if (GrgDataPool) {
+                balance = GrgDataPool.GetData("Balance") || balance;
+            }
+            document.getElementById("balanceValue").innerText =
+                parseFloat(balance).toLocaleString('en-GB', { minimumFractionDigits: 2 });
+
+            // Start timeout
+            timeoutTimer = setTimeout(OnTimeout, 30000);
+        }
+
+        function printBalance() {
+            clearTimeout(timeoutTimer);
+
+            if (GrgApp) {
+                GrgApp.LogEvent("Printing balance receipt");
+            }
+
+            // Simulate printing
+            alert("Balance receipt printing...");
+
+            // Continue to transaction complete
+            finishTransaction();
+        }
+
+        function anotherTransaction() {
+            clearTimeout(timeoutTimer);
+
+            if (GrgApp) {
+                GrgApp.LogEvent("Customer selected another transaction");
+                GrgApp.LoadState("141");
+            }
+        }
+
+        function finishTransaction() {
+            clearTimeout(timeoutTimer);
+
+            if (GrgApp) {
+                GrgApp.LogEvent("Customer finished - moving to completion");
+                GrgApp.LoadState("909");
+            }
+        }
+
+        function OnTimeout() {
+            if (GrgApp) {
+                GrgApp.LogEvent("Balance display timeout");
+                GrgApp.LoadState("909");
+            }
+        }
+    </script>
+
+
+</body>
+</html>
