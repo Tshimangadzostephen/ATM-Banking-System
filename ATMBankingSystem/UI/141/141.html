@@ -1,0 +1,347 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>State 141 - Transaction Selection</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #2196F3 0%, #21CBF3 100%);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(0,0,0,0.2);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .welcome-text {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .account-info {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .menu-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .menu-grid {
+            display: block;
+            max-width: 600px;
+            width: 100%;
+            overflow: hidden; /* Clear floats */
+        }
+
+        .menu-button {
+            float: left;
+            width: calc(50% - 10px); /* Two columns with gap */
+            margin: 0 20px 20px 0;
+            background: white;
+            border: none;
+            border-radius: 10px;
+            padding: 30px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            display: block;
+            text-align: center;
+            min-height: 150px;
+            position: relative;
+            box-sizing: border-box;
+        }
+
+            /* Every second button has no right margin */
+            .menu-button:nth-child(2n) {
+                margin-right: 0;
+            }
+
+            .menu-button:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            }
+
+            .menu-button:active {
+                transform: translateY(0);
+            }
+
+        .menu-icon {
+            font-size: 40px;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .menu-text {
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            display: block;
+        }
+
+        .menu-button.withdrawal {
+            background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%);
+            color: white;
+        }
+
+            .menu-button.withdrawal .menu-text {
+                color: white;
+            }
+
+        .menu-button.balance {
+            background: linear-gradient(135deg, #00BCD4 0%, #03A9F4 100%);
+            color: white;
+        }
+
+            .menu-button.balance .menu-text {
+                color: white;
+            }
+
+        .menu-button.fastcash {
+            background: linear-gradient(135deg, #FF9800 0%, #FFB74D 100%);
+            color: white;
+        }
+
+            .menu-button.fastcash .menu-text {
+                color: white;
+            }
+
+        .menu-button.deposit {
+            background: linear-gradient(135deg, #9C27B0 0%, #BA68C8 100%);
+            color: white;
+        }
+
+            .menu-button.deposit .menu-text {
+                color: white;
+            }
+
+        .menu-button.transfer {
+            background: linear-gradient(135deg, #F44336 0%, #EF5350 100%);
+            color: white;
+        }
+
+            .menu-button.transfer .menu-text {
+                color: white;
+            }
+
+        .menu-button.statement {
+            background: linear-gradient(135deg, #607D8B 0%, #90A4AE 100%);
+            color: white;
+        }
+
+            .menu-button.statement .menu-text {
+                color: white;
+            }
+
+        .menu-button small {
+            font-size: 12px;
+            opacity: 0.9;
+            color: white;
+        }
+
+        .cancel-section {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .cancel-button {
+            padding: 15px 50px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+            .cancel-button:hover {
+                background: rgba(255,255,255,0.3);
+            }
+
+        .timeout-indicator {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 5px;
+            background: rgba(255,0,0,0.7);
+            animation: timeout 30s linear;
+        }
+
+        @keyframes timeout {
+            from {
+                width: 0%;
+            }
+
+            to {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="welcome-text">Welcome, JOHN DOE</div>
+        <div class="account-info">Please select a transaction</div>
+    </div>
+
+    <div class="menu-container">
+        <div class="menu-grid">
+            <button class="menu-button withdrawal" onclick="selectTransaction('WITHDRAWAL')">
+                <div class="menu-icon">💵</div>
+                <div class="menu-text">Cash Withdrawal</div>
+            </button>
+
+            <button class="menu-button balance" onclick="selectTransaction('BALANCE')">
+                <div class="menu-icon">💰</div>
+                <div class="menu-text">Balance Inquiry</div>
+            </button>
+
+            <button class="menu-button fastcash" onclick="selectTransaction('FASTCASH')">
+                <div class="menu-icon">⚡</div>
+                <div class="menu-text">Fast Cash</div>
+            </button>
+
+            <button class="menu-button deposit" onclick="selectTransaction('DEPOSIT')">
+                <div class="menu-icon">📥</div>
+                <div class="menu-text">Deposit</div>
+                <small>(Not Available)</small>
+            </button>
+
+            <button class="menu-button transfer" onclick="selectTransaction('TRANSFER')">
+                <div class="menu-icon">↔️</div>
+                <div class="menu-text">Transfer</div>
+                <small>(Not Available)</small>
+            </button>
+
+            <button class="menu-button statement" onclick="selectTransaction('STATEMENT')">
+                <div class="menu-icon">📄</div>
+                <div class="menu-text">Mini Statement</div>
+                <small>(Not Available)</small>
+            </button>
+        </div>
+    </div>
+
+    <div class="cancel-section">
+        <button class="cancel-button" onclick="cancelTransaction()">CANCEL TRANSACTION</button>
+    </div>
+
+    <div class="timeout-indicator"></div>
+
+    <script>
+        var GrgApp = null;
+        var GrgDataPool = null;
+        var timeoutTimer = null;
+        var initialized = false;
+
+        window.onload = function () {
+            setTimeout(initializeState, 100);
+        };
+
+        function initializeState() {
+            if (initialized) return;
+
+            // Get controls using the injected method (same pattern as other states)
+            if (window.GetWebCtrl && typeof window.GetWebCtrl === "function") {
+                try {
+                    GrgApp = window.GetWebCtrl("GrgApp");
+                    GrgDataPool = window.GetWebCtrl("GrgDataPool");
+
+                    if (GrgApp && GrgDataPool) {
+                        initialized = true;
+                        OnStateEntry();
+                        return;
+                    }
+                } catch (e) {
+                    // Retry
+                }
+            }
+
+            // Retry after delay
+            setTimeout(initializeState, 100);
+        }
+
+        function OnStateEntry() {
+            if (GrgApp) {
+                GrgApp.LogEvent("Enter State 141 - Transaction Selection");
+            }
+
+            // Start 30 second timeout
+            timeoutTimer = setTimeout(function () {
+                OnTimeout();
+            }, 30000);
+        }
+
+        function selectTransaction(transactionType) {
+            clearTimeout(timeoutTimer);
+
+            if (GrgDataPool) {
+                GrgDataPool.SetData("TransactionType", transactionType);
+            }
+
+            if (GrgApp) {
+                GrgApp.LogEvent("Transaction selected: " + transactionType);
+            }
+
+            // Route to appropriate state based on transaction
+            switch (transactionType) {
+                case 'WITHDRAWAL':
+                    if (GrgApp) {
+                        GrgApp.LoadState("395"); // Go to amount entry
+                    }
+                    break;
+
+                case 'BALANCE':
+                    if (GrgApp) {
+                        GrgApp.LoadState("789"); // Go to authorization for balance check
+                    }
+                    break;
+
+                case 'FASTCASH':
+                    // Set fast cash amount and go to authorization
+                    if (GrgDataPool) {
+                        GrgDataPool.SetData("Amount", "50");
+                        GrgDataPool.SetData("FastCash", "true");
+                    }
+                    if (GrgApp) {
+                        GrgApp.LoadState("789");
+                    }
+                    break;
+
+                default:
+                    // Not implemented - show error
+                    alert("This transaction is not available");
+                    break;
+            }
+        }
+
+        function cancelTransaction() {
+            clearTimeout(timeoutTimer);
+
+            if (GrgApp) {
+                GrgApp.LogEvent("Transaction cancelled from main menu");
+                // Go to end transaction first, then it will return to idle
+                GrgApp.LoadState("909");
+            }
+        }
+
+        function OnTimeout() {
+            if (GrgApp) {
+                GrgApp.LogEvent("Menu timeout - returning to idle");
+                GrgApp.LoadState("000");
+            }
+        }
+    </script>
+</body>
+</html>
