@@ -161,18 +161,27 @@
             currentState = st;
             var frame = document.getElementById('stateFrame');
             if (frame) {
-                // For HTA, we need to ensure the frame loads properly
-                // Use contentWindow.location instead of src
                 try {
+                    // Always use the same path structure from index.hta's perspective
                     var statePath = './' + st + '/' + st + '.html';
-                    frame.contentWindow.location.href = statePath;
+
+                    // Set src directly - this always works from parent's perspective
+                    frame.src = statePath;
                     log("Loading state " + st);
 
-                    // Make controls available to frame
-                    frame.contentWindow.GetWebCtrl = window.GetWebCtrl;
+                    // After frame loads, inject controls
+                    frame.onload = frame.onreadystatechange = function () {
+                        try {
+                            if (frame.contentWindow) {
+                                frame.contentWindow.GetWebCtrl = window.GetWebCtrl;
+                                frame.contentWindow.parentWindow = window;
+                            }
+                        } catch (e) {
+                            // Ignore errors
+                        }
+                    };
                 } catch (e) {
-                    // Fallback to src method
-                    frame.src = statePath;
+                    log("Error loading state: " + e.message);
                 }
             }
         }
@@ -227,11 +236,11 @@
         <!-- Left column -->
         <div id="sidePanel">
             <div id="logo">🏦 Universal Bank ATM</div>
-            <button class="actionBtn" onclick="insertTestCard()">Insert Test Card</button>
+            <button class="actionBtn" onclick="insertTestCard()">Insert Card</button>
             <button class="actionBtn" onclick="resetSystem()">Reset System</button>
             <button class="actionBtn" onclick="loadState('000')">Back to Idle</button>
-            <button class="actionBtn" onclick="loadState('924')">Simulate Error</button>
-            <button class="actionBtn" onclick="debugFrame()">Debug Frame</button>
+            <!-- <button class="actionBtn" onclick="loadState('924')">Simulate Error</button>
+            <button class="actionBtn" onclick="debugFrame()">Debug Frame</button> -->
 
             <div style="margin-top: 20px; font-size: 12px;">
                 <div>Test PIN: 1234</div>
