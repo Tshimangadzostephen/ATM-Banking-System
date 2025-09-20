@@ -1,0 +1,324 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>State 137 - PIN Entry</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #3a7bd5 0%, #00d2ff 100%);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Main container */
+        .pin-container {
+            background: #fff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+            text-align: center;
+            min-width: 400px;
+        }
+
+        .title {
+            font-size: 26px;
+            font-weight: bold;
+            color: #222;
+            margin-bottom: 8px;
+        }
+
+        .instructions {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        /* Display for asterisks */
+        .pin-display {
+            font-size: 40px;
+            letter-spacing: 20px;
+            padding: 16px;
+            border: 2px solid #bbb;
+            border-radius: 6px;
+            background: #f7f7f7;
+            min-height: 65px;
+            font-family: monospace;
+            margin-bottom: 25px;
+        }
+
+        /* Keypad layout */
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 90px);
+            gap: 15px;
+            justify-content: center;
+            margin: 25px auto;
+        }
+
+        /* Standard number key */
+        .key-button {
+            height: 70px;
+            font-size: 26px;
+            font-weight: bold;
+            background: linear-gradient(to bottom, #e0e0e0, #bdbdbd);
+            color: #111;
+            border: 1px solid #888;
+            border-radius: 6px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.25);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+            .key-button:hover {
+                background: linear-gradient(to bottom, #d6d6d6, #aaa);
+            }
+
+            .key-button:active {
+                transform: translateY(2px);
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            }
+
+            /* CLEAR button (yellow/orange) */
+            .key-button.clear {
+                background: linear-gradient(to bottom, #ffd54f, #f9a825);
+                color: #222;
+            }
+
+            /* ENTER button (green) */
+            .key-button.enter {
+                background: linear-gradient(to bottom, #4caf50, #2e7d32);
+                color: #fff;
+            }
+
+            /* CANCEL button (red, separate) */
+            .key-button.cancel {
+                background: linear-gradient(to bottom, #e53935, #b71c1c);
+                color: #fff;
+                width: 100%;
+                height: 70px;
+                font-size: 22px;
+                border-radius: 8px;
+                margin-top: 25px;
+            }
+
+        /* Warning text */
+        .attempts-warning {
+            color: #d32f2f;
+            font-size: 14px;
+            margin-top: 12px;
+            min-height: 20px;
+        }
+
+        .timeout-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 5px;
+            background: #e53935;
+            width: 0;
+            transition: width 30s linear;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="pin-container">
+        <div class="title">Please Enter Your PIN</div>
+        <div class="instructions">Enter your 4-6 digit PIN and press ENTER</div>
+
+        <div class="pin-display" id="pinDisplay"></div>
+
+        <div class="keypad">
+            <button class="key-button" onclick="addDigit('1')">1</button>
+            <button class="key-button" onclick="addDigit('2')">2</button>
+            <button class="key-button" onclick="addDigit('3')">3</button>
+            <button class="key-button" onclick="addDigit('4')">4</button>
+            <button class="key-button" onclick="addDigit('5')">5</button>
+            <button class="key-button" onclick="addDigit('6')">6</button>
+            <button class="key-button" onclick="addDigit('7')">7</button>
+            <button class="key-button" onclick="addDigit('8')">8</button>
+            <button class="key-button" onclick="addDigit('9')">9</button>
+            <button class="key-button clear" onclick="clearPIN()">CLEAR</button>
+            <button class="key-button" onclick="addDigit('0')">0</button>
+            <button class="key-button enter" onclick="enterPIN()">ENTER</button>
+        </div>
+
+        <button class="key-button cancel" onclick="cancelTransaction()" style="width: 100%;">CANCEL</button>
+
+        <div class="attempts-warning" id="warningText"></div>
+    </div>
+
+    <div class="timeout-bar" id="timeoutBar"></div>
+
+    <script>
+        var GrgApp = null;
+        var GrgDataPool = null;
+        var enteredPIN = "";
+        var pinAttempts = 0;
+        var timeoutTimer = null;
+        var initialized = false;
+
+        window.onload = function () {
+            setTimeout(initializeState, 100);
+        };
+
+        function initializeState() {
+            if (initialized) return;
+
+            // Get controls using the injected method (same as 000.html and 136.html)
+            if (window.GetWebCtrl && typeof window.GetWebCtrl === "function") {
+                try {
+                    GrgApp = window.GetWebCtrl("GrgApp");
+                    GrgDataPool = window.GetWebCtrl("GrgDataPool");
+
+                    if (GrgApp && GrgDataPool) {
+                        initialized = true;
+                        OnStateEntry();
+                        return;
+                    }
+                } catch (e) {
+                    // Retry
+                }
+            }
+
+            // Retry after delay
+            setTimeout(initializeState, 100);
+        }
+
+        function OnStateEntry() {
+            if (GrgApp) {
+                GrgApp.LogEvent("Enter State 137 - PIN Entry");
+            }
+
+            // Get PIN attempts if any
+            if (GrgDataPool) {
+                var attempts = GrgDataPool.GetData("PINAttempts");
+                if (attempts) {
+                    pinAttempts = parseInt(attempts);
+                }
+            }
+
+            // Start timeout (30 seconds)
+            startTimeout();
+        }
+
+        function addDigit(digit) {
+            if (enteredPIN.length < 6) {
+                enteredPIN += digit;
+                updatePINDisplay();
+
+                if (GrgApp) {
+                    GrgApp.LogEvent("PIN digit entered");
+                }
+            }
+        }
+
+        function updatePINDisplay() {
+            // Show asterisks instead of actual digits
+            var display = "";
+            for (var i = 0; i < enteredPIN.length; i++) {
+                display += "*";
+            }
+            document.getElementById("pinDisplay").innerText = display;
+        }
+
+        function clearPIN() {
+            enteredPIN = "";
+            updatePINDisplay();
+            document.getElementById("warningText").innerText = "";
+
+            if (GrgApp) {
+                GrgApp.LogEvent("PIN cleared");
+            }
+        }
+
+        function enterPIN() {
+            if (enteredPIN.length < 4) {
+                document.getElementById("warningText").innerText = "PIN must be at least 4 digits";
+                return;
+            }
+
+            // Check PIN (demo PIN is 1234)
+            if (enteredPIN === "1234") {
+                // Correct PIN
+                if (GrgDataPool) {
+                    GrgDataPool.SetData("PINValidated", "true");
+                    GrgDataPool.SetData("PINAttempts", "0");
+                }
+
+                if (GrgApp) {
+                    GrgApp.LogEvent("PIN validated successfully");
+                    
+                    GrgApp.LoadState("141");
+                }
+
+                clearTimeout(timeoutTimer);
+
+            } else {
+                // Wrong PIN
+                pinAttempts++;
+
+                if (pinAttempts >= 3) {
+                    // Card retained
+                    document.getElementById("warningText").innerText = "Card retained - too many attempts";
+
+                    if (GrgApp) {
+                        GrgApp.LogEvent("Card retained after 3 failed PIN attempts");
+                    }
+
+                    setTimeout(function () {
+                        if (GrgApp) {
+                            GrgApp.LoadState("000");
+                        }
+                    }, 3000);
+
+                } else {
+                    document.getElementById("warningText").innerText =
+                        "Incorrect PIN. Attempts remaining: " + (3 - pinAttempts);
+
+                    if (GrgDataPool) {
+                        GrgDataPool.SetData("PINAttempts", pinAttempts.toString());
+                    }
+
+                    enteredPIN = "";
+                    updatePINDisplay();
+                }
+            }
+        }
+
+        function cancelTransaction() {
+            if (GrgApp) {
+                GrgApp.LogEvent("Transaction cancelled by user");
+            }
+
+            clearTimeout(timeoutTimer);
+
+            if (GrgApp) {
+                GrgApp.LoadState("000");
+            }
+        }
+
+        function startTimeout() {
+            // Show timeout bar animation
+            document.getElementById("timeoutBar").style.width = "100%";
+
+            // Set 30 second timeout
+            timeoutTimer = setTimeout(function () {
+                OnTimeout();
+            }, 30000);
+        }
+
+        function OnTimeout() {
+            if (GrgApp) {
+                GrgApp.LogEvent("PIN entry timeout");
+                GrgApp.LoadState("000");
+            }
+        }
+    </script>
+</body>
+</html>
