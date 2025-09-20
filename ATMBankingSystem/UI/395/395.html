@@ -1,0 +1,374 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>State 395 - Amount Entry</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #43A047 0%, #66BB6A 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .amount-container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            min-width: 500px;
+        }
+
+        .title {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .amount-display {
+            font-size: 48px;
+            font-weight: bold;
+            color: #43A047;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f5f5f5;
+            border: 3px solid #43A047;
+            border-radius: 10px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Courier New', monospace;
+        }
+
+        .currency-symbol {
+            font-size: 36px;
+            margin-right: 10px;
+        }
+
+        .quick-amounts {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 30px 0;
+        }
+
+        .quick-button {
+            padding: 20px;
+            background: linear-gradient(135deg, #FFA726 0%, #FFB74D 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+
+            .quick-button:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px auto;
+            max-width: 300px;
+        }
+
+        .key {
+            padding: 20px;
+            font-size: 20px;
+            background: #43A047;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+            .key:hover {
+                background: #388E3C;
+                transform: scale(1.05);
+            }
+
+            .key:active {
+                transform: scale(0.95);
+            }
+
+            .key.clear {
+                background: #FF9800;
+            }
+
+                .key.clear:hover {
+                    background: #F57C00;
+                }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .action-button {
+            flex: 1;
+            padding: 15px;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .confirm-button {
+            background: #4CAF50;
+            color: white;
+        }
+
+            .confirm-button:hover {
+                background: #45a049;
+            }
+
+            .confirm-button:disabled {
+                background: #ccc;
+                cursor: not-allowed;
+            }
+
+        .back-button {
+            background: #2196F3;
+            color: white;
+        }
+
+            .back-button:hover {
+                background: #1976D2;
+            }
+
+        .cancel-button {
+            background: #f44336;
+            color: white;
+        }
+
+            .cancel-button:hover {
+                background: #d32f2f;
+            }
+
+        .info-text {
+            color: #666;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+
+        .error-text {
+            color: #f44336;
+            font-size: 14px;
+            margin: 10px 0;
+            min-height: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="amount-container">
+        <div class="title">Enter Withdrawal Amount</div>
+        <div class="info-text">Maximum withdrawal: R500 per transaction</div>
+
+        <div class="amount-display">
+            <span class="currency-symbol">R</span>
+            <span id="amountValue">0</span>
+        </div>
+
+        <div class="quick-amounts">
+            <button class="quick-button" onclick="setQuickAmount(20)">R20</button>
+            <button class="quick-button" onclick="setQuickAmount(40)">R40</button>
+            <button class="quick-button" onclick="setQuickAmount(60)">R60</button>
+            <button class="quick-button" onclick="setQuickAmount(80)">R80</button>
+            <button class="quick-button" onclick="setQuickAmount(100)">R100</button>
+            <button class="quick-button" onclick="setQuickAmount(200)">R200</button>
+        </div>
+
+        <div class="keypad">
+            <button class="key" onclick="addDigit('1')">1</button>
+            <button class="key" onclick="addDigit('2')">2</button>
+            <button class="key" onclick="addDigit('3')">3</button>
+            <button class="key" onclick="addDigit('4')">4</button>
+            <button class="key" onclick="addDigit('5')">5</button>
+            <button class="key" onclick="addDigit('6')">6</button>
+            <button class="key" onclick="addDigit('7')">7</button>
+            <button class="key" onclick="addDigit('8')">8</button>
+            <button class="key" onclick="addDigit('9')">9</button>
+            <button class="key clear" onclick="clearAmount()">CLEAR</button>
+            <button class="key" onclick="addDigit('0')">0</button>
+            <button class="key" onclick="addDigit('00')">00</button>
+        </div>
+
+        <div class="error-text" id="errorMessage"></div>
+
+        <div class="action-buttons">
+            <button class="action-button back-button" onclick="goBack()">BACK</button>
+            <button class="action-button confirm-button" id="confirmButton" onclick="confirmAmount()">CONFIRM</button>
+            <button class="action-button cancel-button" onclick="cancelTransaction()">CANCEL</button>
+        </div>
+    </div>
+
+    <script>
+        var GrgApp = null;
+        var GrgDataPool = null;
+        var currentAmount = "";
+        var timeoutTimer = null;
+        var initialized = false;
+
+        window.onload = function () {
+            setTimeout(initializeState, 100);
+        };
+
+        function initializeState() {
+            if (initialized) return;
+
+            // Get controls using the injected method (same pattern as other states)
+            if (window.GetWebCtrl && typeof window.GetWebCtrl === "function") {
+                try {
+                    GrgApp = window.GetWebCtrl("GrgApp");
+                    GrgDataPool = window.GetWebCtrl("GrgDataPool");
+
+                    if (GrgApp && GrgDataPool) {
+                        initialized = true;
+                        OnStateEntry();
+                        return;
+                    }
+                } catch (e) {
+                    // Retry
+                }
+            }
+
+            // Retry after delay
+            setTimeout(initializeState, 100);
+        }
+
+        function OnStateEntry() {
+            if (GrgApp) {
+                GrgApp.LogEvent("Enter State 395 - Amount Entry");
+            }
+
+            // Start timeout
+            startTimeout();
+        }
+
+        function addDigit(digit) {
+            resetTimeout();
+
+            // Don't allow amounts over 9999
+            if (currentAmount.length >= 4) {
+                return;
+            }
+
+            currentAmount += digit;
+            updateDisplay();
+        }
+
+        function setQuickAmount(amount) {
+            resetTimeout();
+            currentAmount = amount.toString();
+            updateDisplay();
+        }
+
+        function clearAmount() {
+            resetTimeout();
+            currentAmount = "";
+            updateDisplay();
+            document.getElementById("errorMessage").innerText = "";
+        }
+
+        function updateDisplay() {
+            var displayValue = currentAmount || "0";
+            document.getElementById("amountValue").innerText = displayValue;
+
+            // Enable/disable confirm button
+            var amount = parseInt(displayValue);
+            var confirmButton = document.getElementById("confirmButton");
+
+            if (amount > 0 && amount <= 500) {
+                confirmButton.disabled = false;
+                document.getElementById("errorMessage").innerText = "";
+            } else if (amount > 500) {
+                confirmButton.disabled = true;
+                document.getElementById("errorMessage").innerText = "Amount exceeds R500 limit";
+            } else {
+                confirmButton.disabled = true;
+            }
+        }
+
+        function confirmAmount() {
+            var amount = parseInt(currentAmount);
+
+            if (amount <= 0) {
+                document.getElementById("errorMessage").innerText = "Please enter a valid amount";
+                return;
+            }
+
+            if (amount > 500) {
+                document.getElementById("errorMessage").innerText = "Amount exceeds daily limit";
+                return;
+            }
+
+            // Check if amount is multiple of 5 (available denominations)
+            if (amount % 5 !== 0) {
+                document.getElementById("errorMessage").innerText = "Amount must be multiple of R5";
+                return;
+            }
+
+            if (GrgDataPool) {
+                GrgDataPool.SetData("Amount", amount.toString());
+            }
+
+            if (GrgApp) {
+                GrgApp.LogEvent("Amount entered: R" + amount);
+                GrgApp.LoadState("789");
+            }
+
+            clearTimeout(timeoutTimer);
+        }
+
+        function goBack() {
+            clearTimeout(timeoutTimer);
+
+            if (GrgApp) {
+                GrgApp.LogEvent("Going back to transaction menu");
+                GrgApp.LoadState("141");
+            }
+        }
+
+        function cancelTransaction() {
+            clearTimeout(timeoutTimer);
+
+            if (GrgApp) {
+                GrgApp.LogEvent("Transaction cancelled during amount entry");
+                GrgApp.LoadState("000");
+            }
+        }
+
+        function startTimeout() {
+            timeoutTimer = setTimeout(function () {
+                OnTimeout();
+            }, 30000);
+        }
+
+        function resetTimeout() {
+            clearTimeout(timeoutTimer);
+            startTimeout();
+        }
+
+        function OnTimeout() {
+            if (GrgApp) {
+                GrgApp.LogEvent("Amount entry timeout");
+                GrgApp.LoadState("000");
+            }
+        }
+    </script>
+</body>
+</html>

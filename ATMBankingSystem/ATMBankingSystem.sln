@@ -53,62 +53,72 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "integration", "integration"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UI", "UI", "{BFCDC0DC-EA1E-4505-B3F5-B4236D32619A}"
 	ProjectSection(SolutionItems) = preProject
-		index.hta = index.hta
+		UI\index.hta = UI\index.hta
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "reserved", "reserved", "{1C425E84-645D-4C43-AD94-F015A69CC6A6}"
 	ProjectSection(SolutionItems) = preProject
-		controlLoad.html = controlLoad.html
+		UI\reserved\controlLoad.html = UI\reserved\controlLoad.html
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "000", "000", "{73ACFCEB-931A-4A39-B2EB-223E8FC42ABB}"
 	ProjectSection(SolutionItems) = preProject
-		000.html = 000.html
+		UI\000\000.html = UI\000\000.html
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "136", "136", "{1C523B22-5A99-476D-8FA8-7074F37F41AD}"
 	ProjectSection(SolutionItems) = preProject
-		136.html = 136.html
+		UI\136\136.html = UI\136\136.html
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "137", "137", "{1F4662A7-BB3C-43D4-AB0C-A959CBDFA657}"
 	ProjectSection(SolutionItems) = preProject
-		137.html = 137.html
+		UI\137\137.html = UI\137\137.html
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "141", "141", "{610459B0-2622-430C-975B-454FD9BC22D3}"
 	ProjectSection(SolutionItems) = preProject
-		141.html = 141.html
+		UI\141\141.html = UI\141\141.html
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "395", "395", "{3A212B35-7120-4002-9E5A-A598EE706CDD}"
 	ProjectSection(SolutionItems) = preProject
-		395.html = 395.html
+		UI\395\395.html = UI\395\395.html
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "789", "789", "{807C8D14-ADC5-41C3-AE9F-757C292BD8A3}"
 	ProjectSection(SolutionItems) = preProject
-		789.html = 789.html
+		UI\789\789.html = UI\789\789.html
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "907", "907", "{DEA310D0-0259-4924-A795-4D30079BEFF7}"
 	ProjectSection(SolutionItems) = preProject
-		907.html = 907.html
+		UI\907\907.html = UI\907\907.html
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "909", "909", "{63995F3E-7FD9-451F-8E0D-FDACC1BC2CEB}"
 	ProjectSection(SolutionItems) = preProject
-		909.html = 909.html
+		UI\909\909.html = UI\909\909.html
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "766", "766", "{BA9F3B76-0DBC-40C6-B69C-FB8494B4868A}"
 	ProjectSection(SolutionItems) = preProject
-		766.html = 766.html
+		UI\766\766.html = UI\766\766.html
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "924", "924", "{B1287E31-8DAB-46F8-A990-520A3D6B23C8}"
 	ProjectSection(SolutionItems) = preProject
-		924.html = 924.html
+		UI\924\924.html = UI\924\924.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_js", "_js", "{17C9E898-2993-4B75-A238-159C59C0BAE5}"
+	ProjectSection(SolutionItems) = preProject
+		UI\_js\StateProcessor.js = UI\_js\StateProcessor.js
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_css", "_css", "{EA5CA1C6-179D-4C4A-A00C-85549DC2018D}"
+	ProjectSection(SolutionItems) = preProject
+		UI\_css\grg_style.css = UI\_css\grg_style.css
 	EndProjectSection
 EndProject
 Global
@@ -156,6 +166,8 @@ Global
 		{63995F3E-7FD9-451F-8E0D-FDACC1BC2CEB} = {BFCDC0DC-EA1E-4505-B3F5-B4236D32619A}
 		{BA9F3B76-0DBC-40C6-B69C-FB8494B4868A} = {BFCDC0DC-EA1E-4505-B3F5-B4236D32619A}
 		{B1287E31-8DAB-46F8-A990-520A3D6B23C8} = {BFCDC0DC-EA1E-4505-B3F5-B4236D32619A}
+		{17C9E898-2993-4B75-A238-159C59C0BAE5} = {BFCDC0DC-EA1E-4505-B3F5-B4236D32619A}
+		{EA5CA1C6-179D-4C4A-A00C-85549DC2018D} = {BFCDC0DC-EA1E-4505-B3F5-B4236D32619A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9CB713DC-2986-4996-8FB4-F8371BA6DDB8}

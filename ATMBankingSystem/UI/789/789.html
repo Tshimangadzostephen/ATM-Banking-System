@@ -1,0 +1,362 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>State 789 - Authorization</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #5C6BC0 0%, #7E57C2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .auth-container {
+            text-align: center;
+            color: white;
+            padding: 40px;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .title {
+            font-size: 32px;
+            margin-bottom: 30px;
+        }
+
+        .status-message {
+            font-size: 20px;
+            margin: 20px 0;
+            opacity: 0.9;
+        }
+
+        .animation-container {
+            margin: 40px 0;
+        }
+
+        /* Network animation */
+        .network-animation {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .satellite {
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 30px;
+        }
+
+        .signal-wave {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100px;
+            height: 100px;
+            border: 3px solid rgba(255,255,255,0.5);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: pulse 1.5s infinite;
+        }
+
+            .signal-wave:nth-child(2) {
+                animation-delay: 0.3s;
+            }
+
+            .signal-wave:nth-child(3) {
+                animation-delay: 0.6s;
+            }
+
+        @keyframes pulse {
+            0% {
+                width: 100px;
+                height: 100px;
+                opacity: 1;
+            }
+
+            100% {
+                width: 200px;
+                height: 200px;
+                opacity: 0;
+            }
+        }
+
+        /* Progress steps */
+        .progress-steps {
+            margin: 40px 0;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+
+            .step.active {
+                opacity: 1;
+            }
+
+        .step-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .step.active .step-icon {
+            background: white;
+            color: #5C6BC0;
+        }
+
+        .step-text {
+            font-size: 14px;
+        }
+
+        .loading-bar {
+            width: 400px;
+            height: 10px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 20px auto;
+        }
+
+        .loading-fill {
+            height: 100%;
+            background: #4CAF50;
+            animation: loading 3s ease-out;
+        }
+
+        @keyframes loading {
+            from {
+                width: 0%;
+            }
+
+            to {
+                width: 100%;
+            }
+        }
+
+        .response-info {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            display: none;
+        }
+
+            .response-info.show {
+                display: block;
+                animation: slideIn 0.5s ease-out;
+            }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .auth-code {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="title">Processing Transaction</div>
+
+        <div class="network-animation">
+            <div class="signal-wave"></div>
+            <div class="signal-wave"></div>
+            <div class="signal-wave"></div>
+            <div class="satellite">🏦</div>
+        </div>
+
+        <div class="status-message" id="statusText">Connecting to bank...</div>
+
+        <div class="progress-steps">
+            <div class="step" id="step1">
+                <div class="step-icon">📡</div>
+                <div class="step-text">Connect</div>
+            </div>
+            <div class="step" id="step2">
+                <div class="step-icon">🔐</div>
+                <div class="step-text">Secure</div>
+            </div>
+            <div class="step" id="step3">
+                <div class="step-icon">✉️</div>
+                <div class="step-text">Send</div>
+            </div>
+            <div class="step" id="step4">
+                <div class="step-icon">✅</div>
+                <div class="step-text">Authorize</div>
+            </div>
+        </div>
+
+        <div class="loading-bar">
+            <div class="loading-fill"></div>
+        </div>
+
+        <div class="response-info" id="responseInfo">
+            <div>Transaction Approved!</div>
+            <div class="auth-code" id="authCode">AUTH: 123456</div>
+        </div>
+    </div>
+
+    <script>
+        var GrgApp = null;
+        var GrgDataPool = null;
+        var authTimer = null;
+
+        window.onload = function () {
+            OnStateEntry();
+        };
+
+        function OnStateEntry() {
+            try {
+                // Get controls from parent
+                GrgApp = parent.GetWebCtrl("GrgApp");
+                GrgDataPool = parent.GetWebCtrl("GrgDataPool");
+
+                if (GrgApp) {
+                    GrgApp.LogEvent("Enter State 789 - Authorization");
+                }
+
+                // Start authorization sequence
+                startAuthorization();
+
+            } catch (e) {
+                console.log("Error: " + e.message);
+            }
+        }
+
+        function startAuthorization() {
+            var transactionType = "";
+            var amount = "0";
+
+            if (GrgDataPool) {
+                transactionType = GrgDataPool.GetData("TransactionType");
+                amount = GrgDataPool.GetData("Amount");
+            }
+
+            // Simulate authorization steps
+            var steps = [
+                {
+                    time: 500,
+                    step: "step1",
+                    message: "Establishing secure connection..."
+                },
+                {
+                    time: 1000,
+                    step: "step2",
+                    message: "Encrypting transaction data..."
+                },
+                {
+                    time: 1500,
+                    step: "step3",
+                    message: "Sending authorization request..."
+                },
+                {
+                    time: 2500,
+                    step: "step4",
+                    message: "Receiving authorization response..."
+                }
+            ];
+
+            // Animate through steps
+            steps.forEach(function (step) {
+                setTimeout(function () {
+                    document.getElementById(step.step).classList.add("active");
+                    document.getElementById("statusText").innerText = step.message;
+                }, step.time);
+            });
+
+            // Complete authorization
+            authTimer = setTimeout(function () {
+                completeAuthorization(transactionType, amount);
+            }, 3000);
+        }
+
+        function completeAuthorization(transactionType, amount) {
+            // Generate mock authorization code
+            var authCode = Math.floor(100000 + Math.random() * 900000);
+
+            if (GrgDataPool) {
+                GrgDataPool.SetData("AuthCode", authCode.toString());
+                GrgDataPool.SetData("AuthStatus", "APPROVED");
+
+                // Set mock balance
+                if (!GrgDataPool.GetData("Balance")) {
+                    GrgDataPool.SetData("Balance", "1500");
+                }
+            }
+
+            if (GrgApp) {
+                GrgApp.LogEvent("Authorization approved - Code: " + authCode);
+            }
+
+            // Show approval
+            document.getElementById("statusText").innerText = "Authorization Complete";
+            document.getElementById("authCode").innerText = "AUTH: " + authCode;
+            document.getElementById("responseInfo").classList.add("show");
+
+            // Route to next state based on transaction type
+            setTimeout(function () {
+                if (transactionType === "BALANCE") {
+                    parent.loadState("766"); // Go to balance display
+                } else if (transactionType === "WITHDRAWAL" || transactionType === "FASTCASH") {
+                    parent.loadState("907"); // Go to dispense
+                } else {
+                    parent.loadState("909"); // Go to completion
+                }
+            }, 2000);
+        }
+
+        function OnTimeout() {
+            // Authorization doesn't timeout - it either succeeds or fails
+        }
+    </script>
+</body>
+</html>

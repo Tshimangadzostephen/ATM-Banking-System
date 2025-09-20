@@ -1,0 +1,324 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>State 907 - Cash Dispensing</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .dispense-container {
+            text-align: center;
+            color: white;
+            padding: 40px;
+        }
+
+        .title {
+            font-size: 32px;
+            margin-bottom: 30px;
+        }
+
+        .dispenser-visual {
+            width: 400px;
+            height: 300px;
+            margin: 30px auto;
+            background: #333;
+            border-radius: 10px;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .dispenser-slot {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            height: 30px;
+            background: #000;
+            border-radius: 5px;
+        }
+
+        .cash-notes {
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .note {
+            width: 250px;
+            height: 100px;
+            background: linear-gradient(135deg, #85bb65 0%, #6fa053 100%);
+            border: 2px solid #4a7c3c;
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 36px;
+            font-weight: bold;
+            color: white;
+            animation: slideOut 1s ease-out forwards;
+            opacity: 0;
+        }
+
+            .note:nth-child(1) {
+                animation-delay: 0.5s;
+            }
+
+            .note:nth-child(2) {
+                animation-delay: 1s;
+            }
+
+            .note:nth-child(3) {
+                animation-delay: 1.5s;
+            }
+
+        @keyframes slideOut {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .counter {
+            font-size: 48px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .amount-display {
+            font-size: 24px;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+
+        .status-message {
+            font-size: 20px;
+            margin: 20px 0;
+        }
+
+        .note-breakdown {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            font-size: 18px;
+        }
+
+        .warning-text {
+            font-size: 24px;
+            color: #FFE082;
+            margin-top: 30px;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% {
+                opacity: 1;
+            }
+
+            51%, 100% {
+                opacity: 0.5;
+            }
+        }
+
+        .progress-bar {
+            width: 400px;
+            height: 10px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 5px;
+            margin: 20px auto;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: white;
+            animation: progress 3s linear;
+        }
+
+        @keyframes progress {
+            from {
+                width: 0%;
+            }
+
+            to {
+                width: 100%;
+            }
+        }
+
+        .sound-effect {
+            font-size: 16px;
+            color: rgba(255,255,255,0.7);
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="dispense-container">
+        <div class="title">Dispensing Cash</div>
+
+        <div class="dispenser-visual">
+            <div class="cash-notes" id="cashNotes"></div>
+            <div class="dispenser-slot"></div>
+        </div>
+
+        <div class="counter" id="counter">£0</div>
+
+        <div class="status-message" id="statusMessage">Counting notes...</div>
+
+        <div class="note-breakdown" id="noteBreakdown"></div>
+
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+
+        <div class="sound-effect">whirr... click... whirr...</div>
+
+        <div class="warning-text">Please take your cash</div>
+    </div>
+
+    <script>
+        var GrgApp = null;
+        var GrgDataPool = null;
+        var amount = 0;
+        var dispenseTimer = null;
+
+        window.onload = function () {
+            OnStateEntry();
+        };
+
+        function OnStateEntry() {
+            try {
+                // Get controls from parent
+                GrgApp = parent.GetWebCtrl("GrgApp");
+                GrgDataPool = parent.GetWebCtrl("GrgDataPool");
+
+                if (GrgApp) {
+                    GrgApp.LogEvent("Enter State 907 - Cash Dispensing");
+                }
+
+                // Get amount to dispense
+                if (GrgDataPool) {
+                    amount = parseInt(GrgDataPool.GetData("Amount") || "0");
+                }
+
+                // Start dispensing animation
+                startDispensing();
+
+            } catch (e) {
+                console.log("Error: " + e.message);
+            }
+        }
+
+        function startDispensing() {
+            // Calculate note mix
+            var notes = calculateNotes(amount);
+
+            // Display note breakdown
+            var breakdown = "";
+            if (notes.twenties > 0) breakdown += notes.twenties + " x £20 ";
+            if (notes.tens > 0) breakdown += notes.tens + " x £10 ";
+            if (notes.fives > 0) breakdown += notes.fives + " x £5";
+
+            document.getElementById("noteBreakdown").innerText = breakdown;
+
+            // Create visual notes
+            var notesHtml = "";
+            var totalNotes = notes.twenties + notes.tens + notes.fives;
+            for (var i = 0; i < Math.min(totalNotes, 3); i++) {
+                var noteValue = notes.twenties > i ? "£20" :
+                    notes.tens > (i - notes.twenties) ? "£10" : "£5";
+                notesHtml += '<div class="note">' + noteValue + '</div>';
+            }
+            document.getElementById("cashNotes").innerHTML = notesHtml;
+
+            // Animate counter
+            animateCounter();
+
+            // Update status
+            setTimeout(function () {
+                document.getElementById("statusMessage").innerText = "Presenting cash...";
+            }, 1500);
+
+            // Complete dispensing
+            dispenseTimer = setTimeout(function () {
+                completeDispensing();
+            }, 3500);
+        }
+
+        function calculateNotes(amount) {
+            var twenties = Math.floor(amount / 20);
+            var remainder = amount % 20;
+            var tens = Math.floor(remainder / 10);
+            remainder = remainder % 10;
+            var fives = Math.floor(remainder / 5);
+
+            return {
+                twenties: twenties,
+                tens: tens,
+                fives: fives
+            };
+        }
+
+        function animateCounter() {
+            var current = 0;
+            var increment = Math.ceil(amount / 20);
+
+            var interval = setInterval(function () {
+                current += increment;
+                if (current >= amount) {
+                    current = amount;
+                    clearInterval(interval);
+                }
+                document.getElementById("counter").innerText = "£" + current;
+            }, 100);
+        }
+
+        function completeDispensing() {
+            document.getElementById("statusMessage").innerText = "Cash presented - Please take your cash";
+
+            if (GrgApp) {
+                GrgApp.LogEvent("Cash dispensed: £" + amount);
+            }
+
+            // Wait for customer to take cash (simulated)
+            setTimeout(function () {
+                if (GrgApp) {
+                    GrgApp.LogEvent("Cash taken by customer");
+                    GrgApp.LoadState("909");
+                }
+
+                parent.loadState("909"); // Go to transaction complete
+            }, 3000);
+        }
+
+        function OnTimeout() {
+            // If cash not taken within 30 seconds, retract
+            if (GrgApp) {
+                GrgApp.LogEvent("Cash not taken - retracting");
+            }
+
+            parent.loadState("909");
+        }
+    </script>
+</body>
+</html>
