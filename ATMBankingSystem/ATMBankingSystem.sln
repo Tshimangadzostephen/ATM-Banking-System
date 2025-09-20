@@ -83,32 +83,32 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "141", "141", "{610459B0-262
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "395", "395", "{3A212B35-7120-4002-9E5A-A598EE706CDD}"
 	ProjectSection(SolutionItems) = preProject
-		395.html = 395.html
+		UI\395\395.html = UI\395\395.html
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "789", "789", "{807C8D14-ADC5-41C3-AE9F-757C292BD8A3}"
 	ProjectSection(SolutionItems) = preProject
-		789.html = 789.html
+		UI\789\789.html = UI\789\789.html
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "907", "907", "{DEA310D0-0259-4924-A795-4D30079BEFF7}"
 	ProjectSection(SolutionItems) = preProject
-		907.html = 907.html
+		UI\907\907.html = UI\907\907.html
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "909", "909", "{63995F3E-7FD9-451F-8E0D-FDACC1BC2CEB}"
 	ProjectSection(SolutionItems) = preProject
-		909.html = 909.html
+		UI\909\909.html = UI\909\909.html
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "766", "766", "{BA9F3B76-0DBC-40C6-B69C-FB8494B4868A}"
 	ProjectSection(SolutionItems) = preProject
-		766.html = 766.html
+		UI\766\766.html = UI\766\766.html
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "924", "924", "{B1287E31-8DAB-46F8-A990-520A3D6B23C8}"
 	ProjectSection(SolutionItems) = preProject
-		924.html = 924.html
+		UI\924\924.html = UI\924\924.html
 	EndProjectSection
 EndProject
 Global
