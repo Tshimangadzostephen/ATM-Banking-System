@@ -1,0 +1,281 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>ATM Banking System</title>
+    <hta:application
+        id="ATMApp"
+        applicationname="ATM Banking System"
+        border="thin"
+        caption="yes"
+        maximizebutton="yes"
+        minimizebutton="yes"
+        showintaskbar="yes"
+        singleinstance="yes"
+        sysmenu="yes"
+        windowstate="maximize">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+        }
+
+        #container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Left panel */
+        #sidePanel {
+            width: 280px;
+            background: #2c2c2c;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #logo {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .actionBtn {
+            background: #0066cc;
+            border: none;
+            color: white;
+            padding: 12px;
+            margin: 6px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .actionBtn:hover {
+            background: #0088ff;
+        }
+
+        #logArea {
+            flex: 1;
+            background: #000;
+            color: #0f0;
+            font-size: 12px;
+            padding: 5px;
+            margin-top: 10px;
+            overflow-y: auto;
+            border: 1px solid #0f0;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Right column */
+        #atmScreen {
+            flex: 1;
+            background: #f0f0f0;
+        }
+
+        #stateFrame {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+
+    <script type="text/javascript">
+        // Define globals BEFORE anything else
+        var GrgApp = null;
+        var GrgDataPool = null;
+        var currentState = '000';
+        var logMessages = [];
+
+        // CRITICAL: Define GetWebCtrl immediately as a global function
+        // This MUST be available before any iframe loads
+        window.GetWebCtrl = function (name) {
+            // Make sure controls exist
+            if (!GrgApp || !GrgDataPool) {
+                initControls();
+            }
+
+            if (name === "GrgApp") return GrgApp;
+            if (name === "GrgDataPool") return GrgDataPool;
+            return null;
+        };
+
+        function initControls() {
+            if (!GrgApp) {
+                GrgApp = {
+                    LogEvent: function (msg) {
+                        log(msg);
+                    },
+                    LoadState: function (st) {
+                        loadState(st);
+                    },
+                    GetCurrentState: function () {
+                        return currentState;
+                    }
+                };
+            }
+
+            if (!GrgDataPool) {
+                // Use a simple object instead of sessionStorage (not supported in HTA)
+                var dataStore = {};
+
+                GrgDataPool = {
+                    SetData: function (k, v) {
+                        dataStore[k] = v;
+                        log("Data set: " + k + " = " + v);
+                    },
+                    GetData: function (k) {
+                        return dataStore[k] || null;
+                    },
+                    ClearData: function () {
+                        dataStore = {};
+                        log("Data cleared");
+                    }
+                };
+            }
+        }
+
+        function log(msg) {
+            var t = new Date().toLocaleTimeString();
+            logMessages.push("[" + t + "] " + msg);
+            if (logMessages.length > 50) logMessages.shift();
+
+            var logArea = document.getElementById('logArea');
+            if (logArea) {
+                logArea.innerHTML = logMessages.join('<br>');
+                logArea.scrollTop = logArea.scrollHeight;
+            }
+        }
+
+        function loadState(st) {
+            currentState = st;
+            var frame = document.getElementById('stateFrame');
+            if (frame) {
+                // For HTA, we need to ensure the frame loads properly
+                // Use contentWindow.location instead of src
+                try {
+                    var statePath = './' + st + '/' + st + '.html';
+                    frame.contentWindow.location.href = statePath;
+                    log("Loading state " + st);
+
+                    // Make controls available to frame
+                    frame.contentWindow.GetWebCtrl = window.GetWebCtrl;
+                } catch (e) {
+                    // Fallback to src method
+                    frame.src = statePath;
+                }
+            }
+        }
+
+        function insertTestCard() {
+            if (!GrgDataPool) initControls();
+
+            GrgDataPool.SetData("CardNumber", "4532123456789012");
+            GrgDataPool.SetData("CardholderName", "JOHN DOE");
+            GrgDataPool.SetData("ExpiryDate", "12/25");
+            log("Test card inserted");
+            loadState('136');
+        }
+
+        function resetSystem() {
+            if (GrgDataPool) {
+                GrgDataPool.ClearData();
+            }
+            log("System reset");
+            loadState('000');
+        }
+
+        function debugFrame() {
+            var frame = document.getElementById('stateFrame');
+            if (!frame) {
+                alert("Frame not found!");
+                return;
+            }
+
+            var msg = "Frame Debug:\n";
+            msg += "Frame exists: yes\n";
+            msg += "Frame src: " + frame.src + "\n";
+
+            try {
+                msg += "Frame contentWindow: " + (frame.contentWindow ? "exists" : "null") + "\n";
+
+                // Try to inject GetWebCtrl into frame
+                if (frame.contentWindow) {
+                    frame.contentWindow.GetWebCtrl = window.GetWebCtrl;
+                    msg += "Injected GetWebCtrl into frame\n";
+                }
+            } catch (e) {
+                msg += "Error: " + e.message + "\n";
+            }
+
+            alert(msg);
+        }
+    </script>
+</head>
+<body>
+    <div id="container">
+        <!-- Left column -->
+        <div id="sidePanel">
+            <div id="logo">🏦 Universal Bank ATM</div>
+            <button class="actionBtn" onclick="insertTestCard()">Insert Test Card</button>
+            <button class="actionBtn" onclick="resetSystem()">Reset System</button>
+            <button class="actionBtn" onclick="loadState('000')">Back to Idle</button>
+            <button class="actionBtn" onclick="loadState('924')">Simulate Error</button>
+            <button class="actionBtn" onclick="debugFrame()">Debug Frame</button>
+
+            <div style="margin-top: 20px; font-size: 12px;">
+                <div>Test PIN: 1234</div>
+                <div>Card: 4532123456789012</div>
+            </div>
+
+            <div id="logArea"></div>
+        </div>
+
+        <!-- Right column: the ATM screen -->
+        <div id="atmScreen">
+            <iframe id="stateFrame" name="stateFrame"></iframe>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        // Initialize AFTER page loads
+        window.onload = function () {
+            // Initialize controls first
+            initControls();
+
+            // Set up frame communication using a different method
+            var frame = document.getElementById('stateFrame');
+            if (frame) {
+                // For HTA, inject controls directly into frame's window object
+                frame.onload = frame.onreadystatechange = function () {
+                    try {
+                        if (frame.contentWindow) {
+                            // Inject GetWebCtrl function into frame
+                            frame.contentWindow.GetWebCtrl = window.GetWebCtrl;
+                            // Also inject parent reference
+                            frame.contentWindow.parentWindow = window;
+                        }
+                    } catch (e) {
+                        // Ignore errors
+                    }
+                };
+            }
+
+            // Give it a moment to settle, then load initial state
+            setTimeout(function () {
+                loadState('000');
+            }, 100);
+        };
+    </script>
+</body>
+</html>
