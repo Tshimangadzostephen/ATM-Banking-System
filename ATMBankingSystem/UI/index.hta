@@ -88,14 +88,33 @@
             height: 100%;
             border: none;
         }
+        
+        .status-indicator {
+            padding: 5px;
+            margin: 10px 0;
+            background: #333;
+            border-radius: 3px;
+            font-size: 11px;
+            text-align: center;
+        }
+        
+        .status-indicator.activex {
+            background: #2e7d2e;
+        }
+        
+        .status-indicator.simulation {
+            background: #7d7d2e;
+        }
     </style>
 
     <script type="text/javascript">
         // Define globals BEFORE anything else
         var GrgApp = null;
         var GrgDataPool = null;
+        var ATMControl = null;  // Main ActiveX control
         var currentState = '000';
         var logMessages = [];
+        var usingActiveX = false;
 
         // CRITICAL: Define GetWebCtrl immediately as a global function
         // This MUST be available before any iframe loads
@@ -107,14 +126,97 @@
 
             if (name === "GrgApp") return GrgApp;
             if (name === "GrgDataPool") return GrgDataPool;
+            if (name === "ATMControl") return ATMControl;
             return null;
         };
 
         function initControls() {
+            // First, try to create real ActiveX controls
+            try {
+                // Try the main ATM control
+                ATMControl = new ActiveXObject("ATMBankingSystem.ATMControl");
+
+                // Try the GRG controls
+                var testGrgApp = new ActiveXObject("ATMBankingSystem.GrgApp");
+                var testGrgDataPool = new ActiveXObject("ATMBankingSystem.GrgDataPool");
+
+                // If we get here, ActiveX is available
+                if (ATMControl && testGrgApp && testGrgDataPool) {
+                    log("ActiveX controls detected - using real controls");
+
+                    // Initialize the main control
+                    if (ATMControl.Initialize) {
+                        ATMControl.Initialize();
+                        log("ATM ActiveX Control initialized");
+                    }
+
+                    // Initialize GRG controls
+                    if (testGrgApp.Init) {
+                        testGrgApp.Init();
+                        log("GrgApp ActiveX Control initialized");
+                    }
+
+                    // Create wrapper objects that match our interface
+                    GrgApp = {
+                        LogEvent: function (msg) {
+                            log("[ActiveX] " + msg);
+                            if (testGrgApp.LogEvent) {
+                                testGrgApp.LogEvent(msg);
+                            }
+                        },
+                        LoadState: function (st) {
+                            if (testGrgApp.LoadState) {
+                                testGrgApp.LoadState(st);
+                            }
+                            loadState(st);  // Also update our iframe
+                        },
+                        GetCurrentState: function () {
+                            if (testGrgApp.GetCurrentState) {
+                                return testGrgApp.GetCurrentState();
+                            }
+                            return currentState;
+                        },
+                        // Store reference to actual ActiveX object
+                        activeXObject: testGrgApp
+                    };
+
+                    GrgDataPool = {
+                        SetData: function (k, v) {
+                            log("ActiveX Data set: " + k + " = " + v);
+                            if (testGrgDataPool.SetData) {
+                                return testGrgDataPool.SetData(k, v);
+                            }
+                        },
+                        GetData: function (k) {
+                            if (testGrgDataPool.GetData) {
+                                return testGrgDataPool.GetData(k);
+                            }
+                            return null;
+                        },
+                        ClearData: function () {
+                            log("ActiveX Data cleared");
+                            if (testGrgDataPool.ClearData) {
+                                return testGrgDataPool.ClearData();
+                            }
+                        },
+                        // Store reference to actual ActiveX object
+                        activeXObject: testGrgDataPool
+                    };
+
+                    usingActiveX = true;
+                    updateStatusIndicator("ActiveX Mode");
+                    return;
+                }
+            } catch (e) {
+                log("ActiveX not available: " + e.message);
+                log("Falling back to JavaScript simulation");
+            }
+
+            // Fall back to JavaScript simulation
             if (!GrgApp) {
                 GrgApp = {
                     LogEvent: function (msg) {
-                        log(msg);
+                        log("[Sim] " + msg);
                     },
                     LoadState: function (st) {
                         loadState(st);
@@ -132,16 +234,28 @@
                 GrgDataPool = {
                     SetData: function (k, v) {
                         dataStore[k] = v;
-                        log("Data set: " + k + " = " + v);
+                        log("Sim Data set: " + k + " = " + v);
                     },
                     GetData: function (k) {
                         return dataStore[k] || null;
                     },
                     ClearData: function () {
                         dataStore = {};
-                        log("Data cleared");
+                        log("Sim Data cleared");
                     }
                 };
+            }
+
+            usingActiveX = false;
+            updateStatusIndicator("Simulation Mode");
+        }
+
+        function updateStatusIndicator(status) {
+            var indicator = document.getElementById('statusIndicator');
+            if (indicator) {
+                indicator.innerHTML = status;
+                indicator.className = 'status-indicator ' +
+                    (usingActiveX ? 'activex' : 'simulation');
             }
         }
 
@@ -189,42 +303,58 @@
         function insertTestCard() {
             if (!GrgDataPool) initControls();
 
-            GrgDataPool.SetData("CardNumber", "4532123456789012");
-            GrgDataPool.SetData("CardholderName", "JOHN DOE");
-            GrgDataPool.SetData("ExpiryDate", "12/25");
-            log("Test card inserted");
+            // If using ActiveX with main control, use its methods
+            if (usingActiveX && ATMControl && ATMControl.InsertCard) {
+                ATMControl.InsertCard("4532123456789012");
+                log("Test card inserted via ActiveX");
+            } else {
+                // Use GrgDataPool method
+                GrgDataPool.SetData("CardNumber", "4532123456789012");
+                GrgDataPool.SetData("CardholderName", "JOHN DOE");
+                GrgDataPool.SetData("ExpiryDate", "12/25");
+                log("Test card inserted");
+            }
+
             loadState('136');
         }
 
         function resetSystem() {
-            if (GrgDataPool) {
+            if (usingActiveX && ATMControl && ATMControl.Initialize) {
+                ATMControl.Initialize();
+                log("System reset via ActiveX");
+            } else if (GrgDataPool) {
                 GrgDataPool.ClearData();
+                log("System reset");
             }
-            log("System reset");
             loadState('000');
         }
 
-        function debugFrame() {
-            var frame = document.getElementById('stateFrame');
-            if (!frame) {
-                alert("Frame not found!");
-                return;
-            }
+        function testActiveX() {
+            var msg = "ActiveX Status:\n\n";
+            msg += "Using ActiveX: " + (usingActiveX ? "Yes" : "No") + "\n";
 
-            var msg = "Frame Debug:\n";
-            msg += "Frame exists: yes\n";
-            msg += "Frame src: " + frame.src + "\n";
+            if (usingActiveX) {
+                msg += "\nActiveX Controls Loaded:\n";
+                msg += "- ATMControl: " + (ATMControl ? "Yes" : "No") + "\n";
+                msg += "- GrgApp: " + (GrgApp && GrgApp.activeXObject ? "Yes" : "No") + "\n";
+                msg += "- GrgDataPool: " + (GrgDataPool && GrgDataPool.activeXObject ? "Yes" : "No") + "\n";
 
-            try {
-                msg += "Frame contentWindow: " + (frame.contentWindow ? "exists" : "null") + "\n";
-
-                // Try to inject GetWebCtrl into frame
-                if (frame.contentWindow) {
-                    frame.contentWindow.GetWebCtrl = window.GetWebCtrl;
-                    msg += "Injected GetWebCtrl into frame\n";
+                if (ATMControl) {
+                    try {
+                        msg += "\nATMControl Methods:\n";
+                        msg += "- GetVersion: " + (ATMControl.GetVersion ? ATMControl.GetVersion() : "N/A") + "\n";
+                        msg += "- GetCurrentState: " + (ATMControl.GetCurrentState ? ATMControl.GetCurrentState() : "N/A") + "\n";
+                    } catch (e) {
+                        msg += "\nError accessing ATMControl: " + e.message;
+                    }
                 }
-            } catch (e) {
-                msg += "Error: " + e.message + "\n";
+            } else {
+                msg += "\nActiveX controls not available.\n";
+                msg += "Running in JavaScript simulation mode.\n";
+                msg += "\nTo use ActiveX:\n";
+                msg += "1. Build the C# projects\n";
+                msg += "2. Register DLLs with: regasm /codebase\n";
+                msg += "3. Restart this application\n";
             }
 
             alert(msg);
@@ -236,11 +366,13 @@
         <!-- Left column -->
         <div id="sidePanel">
             <div id="logo">🏦 Universal Bank ATM</div>
+            
+            <div id="statusIndicator" class="status-indicator">Initializing...</div>
+            
             <button class="actionBtn" onclick="insertTestCard()">Insert Card</button>
             <button class="actionBtn" onclick="resetSystem()">Reset System</button>
             <button class="actionBtn" onclick="loadState('000')">Back to Idle</button>
-            <!-- <button class="actionBtn" onclick="loadState('924')">Simulate Error</button>
-            <button class="actionBtn" onclick="debugFrame()">Debug Frame</button> -->
+            <button class="actionBtn" onclick="testActiveX()">Test ActiveX</button>
 
             <div style="margin-top: 20px; font-size: 12px;">
                 <div>Test PIN: 1234</div>

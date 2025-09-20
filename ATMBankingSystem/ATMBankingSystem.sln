@@ -53,7 +53,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "integration", "integration"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UI", "UI", "{BFCDC0DC-EA1E-4505-B3F5-B4236D32619A}"
 	ProjectSection(SolutionItems) = preProject
-		index.hta = index.hta
 		UI\index.hta = UI\index.hta
 	EndProjectSection
 EndProject
