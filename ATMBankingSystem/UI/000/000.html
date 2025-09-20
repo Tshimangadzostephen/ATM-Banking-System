@@ -65,10 +65,9 @@
             padding: 20px 40px;
             background: white;
             color: #667eea;
-            border-radius: 50px;
+            border-radius: 25px;
             margin-top: 40px;
             display: inline-block;
-            animation: pulse 2s infinite;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
@@ -80,27 +79,6 @@
             border-radius: 10px;
             position: relative;
             box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
-        }
-
-            .card-slot::before {
-                content: "→ INSERT CARD →";
-                position: absolute;
-                top: -25px;
-                left: 50%;
-                transform: translateX(-50%);
-                color: white;
-                font-size: 14px;
-                animation: blink 1.5s infinite;
-            }
-
-        @keyframes blink {
-            0%, 50% {
-                opacity: 1;
-            }
-
-            51%, 100% {
-                opacity: 0.3;
-            }
         }
 
         .bottom-info {
@@ -283,7 +261,6 @@
                 GrgApp.LogEvent("Test card inserted");
             }
 
-            alert("Card inserted! Moving to state 136...");
             moveToCardRead();
         }
 
