@@ -1,0 +1,22 @@
+{
+  "Accounts": [
+    {
+      "CardNumber": "4532123456789012",
+      "CardholderName": "JOHN DOE",
+      "PIN": "1234",
+      "ExpiryDate": "12/25",
+      "Balance": 500,
+      "AvailableBalance": 450
+    },
+    {
+      "CardNumber": "4716123456789012",
+      "CardholderName": "JANE SMITH",
+      "PIN": "4321",
+      "ExpiryDate": "11/26",
+      "Balance": 1000,
+      "AvailableBalance": 800
+    }
+  ],
+  "Transactions": []
+}
+

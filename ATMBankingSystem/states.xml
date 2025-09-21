@@ -1,1 +1,88 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
+<ATMStates version="1.0">
+  <!-- ==========================================================
+       ATM State Machine Configuration
+       Implements Cash Withdrawal, Balance Inquiry, Fast Cash
+       ========================================================== -->
+
+  <!-- Startup -->
+  <InitialState id="000" />
+
+  <!-- ===== Core States ===== -->
+
+  <State id="000" name="Idle">
+    <Page>UI\000\000.html</Page>
+    <Description>Attract loop — waiting for card</Description>
+    <Next id="136" trigger="cardInserted" />
+  </State>
+
+  <State id="136" name="Card Read">
+    <Page>UI\136\136.html</Page>
+    <Description>Card inserted, reading data</Description>
+    <Next id="137" trigger="cardRead" />
+    <Timeout to="000" seconds="30" />
+  </State>
+
+  <State id="137" name="PIN Entry">
+    <Page>UI\137\137.html</Page>
+    <Description>Enter PIN and validate</Description>
+    <Next id="141" trigger="pinAccepted" />
+    <Next id="924" trigger="pinFailed" />
+    <Timeout to="000" seconds="20" />
+  </State>
+
+  <State id="141" name="Transaction Selection">
+    <Page>UI\141\141.html</Page>
+    <Description>Main menu: Withdrawal / Balance / Fast Cash</Description>
+    <Next id="395" trigger="withdrawalSelected" />
+    <Next id="789" trigger="balanceSelected" />
+    <Next id="395" trigger="fastCashSelected" />
+    <Next id="000" trigger="cancel" />
+  </State>
+
+  <State id="395" name="Amount Entry">
+    <Page>UI\395\395.html</Page>
+    <Description>Enter withdrawal amount (or choose Fast Cash)</Description>
+    <Next id="789" trigger="amountEntered" />
+    <Next id="141" trigger="back" />
+  </State>
+
+  <State id="789" name="Authorization">
+    <Page>UI\789\789.html</Page>
+    <Description>Send request to Host Simulator for authorisation</Description>
+    <Next id="907" trigger="approved" />
+    <Next id="766" trigger="balanceInfo" />
+    <Next id="924" trigger="denied" />
+  </State>
+
+  <State id="907" name="Dispense">
+    <Page>UI\907\907.html</Page>
+    <Description>Dispensing cash</Description>
+    <Next id="909" trigger="dispenseComplete" />
+    <Next id="924" trigger="dispenseError" />
+  </State>
+
+  <State id="909" name="End Transaction">
+    <Page>UI\909\909.html</Page>
+    <Description>Print receipt and eject card</Description>
+    <Next id="000" trigger="cardRemoved" />
+  </State>
+
+  <State id="766" name="Display Information">
+    <Page>UI\766\766.html</Page>
+    <Description>Show account balance or information</Description>
+    <Next id="909" trigger="continue" />
+  </State>
+
+  <State id="924" name="Device/Error">
+    <Page>UI\924\924.html</Page>
+    <Description>Device or authorisation error</Description>
+    <Next id="000" trigger="reset" />
+  </State>
+
+  <!-- ===== Workflow Mapping =====
+       Cash Withdrawal: 000→136→137→141→395→789→907→909
+       Balance Inquiry: 000→136→137→141→789→766→909
+       Fast Cash:       000→136→137→395→789→907→909
+       ============================ -->
+</ATMStates>

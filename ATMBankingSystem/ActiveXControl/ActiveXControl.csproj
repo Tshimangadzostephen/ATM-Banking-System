@@ -7,8 +7,8 @@
     <ProjectGuid>{2B788B70-BCFF-4EB5-98FC-7C8EE813BAA6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ActiveXControl</RootNamespace>
-    <AssemblyName>ActiveXControl</AssemblyName>
+    <RootNamespace>ATMBankingSystem.ActiveXControl</RootNamespace>
+    <AssemblyName>ATMBankingSystem.ActiveXControl</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -22,6 +22,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <RegisterForComInterop>true</RegisterForComInterop>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>

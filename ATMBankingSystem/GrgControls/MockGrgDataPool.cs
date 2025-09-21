@@ -24,7 +24,9 @@ namespace ATMBankingSystem.GrgControls
         {
             try
             {
-                Console.WriteLine("[GrgDataPool] Setting: " + key + " = " + value);
+                //Console.WriteLine("[GrgDataPool] Setting: " + key + " = " + value);
+                System.Diagnostics.Debug.WriteLine("[GrgDataPool] Setting: " + key + " = " + value);
+
                 dataPool[key] = value;
                 return 0; // Success
             }

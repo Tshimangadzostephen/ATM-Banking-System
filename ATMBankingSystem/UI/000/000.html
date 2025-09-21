@@ -34,20 +34,6 @@
             }
         }
 
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-            }
-
-            50% {
-                transform: scale(1.05);
-            }
-
-            100% {
-                transform: scale(1);
-            }
-        }
-
         .bank-logo {
             font-size: 48px;
             font-weight: bold;
@@ -102,14 +88,13 @@
             font-size: 14px;
         }
 
-        .test-button:hover {
-            background: rgba(255,255,255,0.3);
-        }
+            .test-button:hover {
+                background: rgba(255,255,255,0.3);
+            }
     </style>
 </head>
 <body>
     <button class="test-button" onclick="simulateCardInsert()">Insert Card</button>
-    <!--<button class="test-button" style="top: 20px; left: 20px;" onclick="debugParent()">Debug Parent</button>-->
 
     <div class="welcome-container">
         <div class="bank-logo">🏦 UNIVERSAL BANK</div>
@@ -121,49 +106,13 @@
         var GrgApp = null;
         var GrgDataPool = null;
         var checkCardInterval = null;
+        var initialized = false; // Prevent multiple initialization
         var retryCount = 0;
-        var maxRetries = 50; // 5 seconds max wait
-
-        // Check if we're in an iframe - use multiple methods
-        function isInIframe() {
-            try {
-                // Method 1: Check if we have a parent that's different
-                if (window.parent && window.parent !== window) {
-                    console.log("Method 1: We have a different parent");
-                    return true;
-                }
-
-                // Method 2: Check frameElement
-                if (window.frameElement) {
-                    console.log("Method 2: frameElement exists");
-                    return true;
-                }
-
-                // Method 3: Try to access parent.document (will fail in cross-origin)
-                try {
-                    var test = window.parent.document;
-                    // If we get here and parent !== window, we're in same-origin iframe
-                    if (window.parent !== window) {
-                        console.log("Method 3: Can access parent.document and parent differs");
-                        return true;
-                    }
-                } catch (e) {
-                    // Can't access parent.document - probably in iframe
-                    console.log("Method 3: Cannot access parent.document (probably iframe)");
-                    return true;
-                }
-
-                console.log("All iframe detection methods failed");
-                return false;
-            } catch (e) {
-                console.log("isInIframe error:", e);
-                return true; // Assume iframe on error
-            }
-        }
+        var maxRetries = 50;
 
         function initializeState() {
-            // In HTA, the functions are injected directly into the window
-            // Check for the injected GetWebCtrl function
+            // PREVENT MULTIPLE INITIALIZATION
+            if (initialized) return;
 
             if (window.GetWebCtrl && typeof window.GetWebCtrl === "function") {
                 try {
@@ -171,9 +120,11 @@
                     GrgDataPool = window.GetWebCtrl("GrgDataPool");
 
                     if (GrgApp && GrgDataPool) {
-                        // Success! We have the controls
+                        //alert("Controls initialized.");
+                        // Mark as initialized BEFORE calling OnStateEntry
+                        initialized = true;
                         OnStateEntry();
-                        return true;
+                        return;
                     }
                 } catch (e) {
                     // If error, retry
@@ -185,37 +136,25 @@
             if (retryCount < maxRetries) {
                 setTimeout(initializeState, 100);
             } else {
-                // Failed - use demo mode
-                setupDemoMode();
+                // Mark as initialized to stop retrying
+                initialized = true;
+                alert("Failed to initialize controls after multiple attempts. Running in limited mode.");
             }
         }
 
-        function setupDemoMode() {
-            console.log("Running in demo mode");
-            // Create local mock controls
-            GrgApp = {
-                LogEvent: function (msg) { console.log("[Demo] " + msg); },
-                LoadState: function (st) { console.log("[Demo] Would load state: " + st); }
-            };
-            GrgDataPool = {
-                //RETURN TO AND FIX: HTA Does not support sessionStorage, use a simple object
-                SetData: function (k, v) { sessionStorage.setItem(k, v); },
-                GetData: function (k) { return sessionStorage.getItem(k); },
-                ClearData: function () { sessionStorage.clear(); }
-            };
-            OnStateEntry();
-        }
-
         function OnStateEntry() {
-            console.log("State 000 Entry");
-
-            if (GrgApp) {
+            // Only log once
+            if (GrgApp && GrgApp.LogEvent) {
                 GrgApp.LogEvent("Enter State 000 - Idle");
             }
 
             // Clear any previous session data
-            if (GrgDataPool) {
-                GrgDataPool.ClearData();
+            if (GrgDataPool && GrgDataPool.ClearData) {
+                try {
+                    GrgDataPool.ClearData();
+                } catch (e) {
+                    // Ignore clear data errors
+                }
             }
 
             // Start checking for card insertion
@@ -223,14 +162,23 @@
         }
 
         function startCardCheck() {
+            // Clear any existing interval first
+            if (checkCardInterval) {
+                clearInterval(checkCardInterval);
+            }
+
             // Check every second if a card has been inserted
             checkCardInterval = setInterval(function () {
-                if (GrgDataPool) {
-                    var cardNumber = GrgDataPool.GetData("CardNumber");
-                    if (cardNumber && cardNumber.length > 0) {
-                        // Card detected - move to card read state
-                        clearInterval(checkCardInterval);
-                        moveToCardRead();
+                if (GrgDataPool && GrgDataPool.GetData) {
+                    try {
+                        var cardNumber = GrgDataPool.GetData("CardNumber");
+                        if (cardNumber && cardNumber.length > 0) {
+                            // Card detected - move to card read state
+                            clearInterval(checkCardInterval);
+                            moveToCardRead();
+                        }
+                    } catch (e) {
+                        // Ignore errors in checking
                     }
                 }
             }, 1000);
@@ -239,7 +187,6 @@
         function simulateCardInsert() {
             // Try to get controls if they're not set
             if (!GrgDataPool || !GrgApp) {
-                // Use the direct window.GetWebCtrl that was injected
                 if (window.GetWebCtrl) {
                     GrgApp = window.GetWebCtrl("GrgApp");
                     GrgDataPool = window.GetWebCtrl("GrgDataPool");
@@ -253,12 +200,35 @@
             }
 
             // Simulate card insertion for testing
-            GrgDataPool.SetData("CardNumber", "4532123456789012");
-            GrgDataPool.SetData("CardholderName", "JOHN DOE");
-            GrgDataPool.SetData("ExpiryDate", "12/25");
+            try {
 
-            if (GrgApp) {
-                GrgApp.LogEvent("Test card inserted");
+                if (GrgDataPool.SetData) {
+
+                    //alert("Setting test card data...");
+
+                    // Try to set data - handle different possible method signatures
+                    try {
+                        GrgDataPool.SetData("CardNumber", "4532123456789012");
+                        alert("CardNumber set.");
+                    } catch (e) {
+                        alert("Error: " + e.message);
+                    }
+
+                    //alert("CardNumber set.");
+                    //GrgDataPool.SetData("CardholderName", "JOHN DOE");
+                    //GrgDataPool.SetData("ExpiryDate", "12/25");
+                }
+            } catch (e) {
+                alert("Error setting card data: " + e.message);
+                return;
+            }
+
+            if (GrgApp && GrgApp.LogEvent) {
+                try {
+                    GrgApp.LogEvent("Test card inserted");
+                } catch (e) {
+                    // Ignore logging errors
+                }
             }
 
             moveToCardRead();
@@ -269,10 +239,21 @@
                 clearInterval(checkCardInterval);
             }
 
-            if (GrgApp) {
-                GrgApp.LogEvent("Card detected - moving to state 136");
-                // This will call parent's loadState function
-                GrgApp.LoadState("136");
+            if (GrgApp && GrgApp.LogEvent) {
+                try {
+                    GrgApp.LogEvent("Card detected - moving to state 136");
+                } catch (e) { }
+            }
+
+            if (GrgApp && GrgApp.LoadState) {
+                try {
+                    GrgApp.LoadState("136");
+                } catch (e) {
+                    // If ActiveX LoadState fails, try parent
+                    if (window.parent && window.parent.loadState) {
+                        window.parent.loadState("136");
+                    }
+                }
             } else {
                 // Fallback - try to call parent directly
                 if (window.parent && window.parent.loadState) {
@@ -285,50 +266,8 @@
             // No timeout in idle state - it waits forever for a card
         }
 
-        function debugParent() {
-            var msg = "Debug Info:\n";
-            msg += "window.parent exists: " + (!!window.parent) + "\n";
-            msg += "window.parent === window: " + (window.parent === window) + "\n";
-
-            // Check for injected properties
-            msg += "\nChecking injected properties:\n";
-            msg += "window.GetWebCtrl: " + (typeof window.GetWebCtrl) + "\n";
-            msg += "window.parentWindow: " + (!!window.parentWindow) + "\n";
-
-            // Try all possible locations
-            try {
-                msg += "\nChecking parent properties:\n";
-                msg += "window.parent.GetWebCtrl: " + (typeof window.parent.GetWebCtrl) + "\n";
-
-                // Check if we can access top
-                msg += "window.top.GetWebCtrl: " + (typeof window.top.GetWebCtrl) + "\n";
-
-                // Try to call if it exists anywhere
-                if (window.GetWebCtrl) {
-                    msg += "\nUsing window.GetWebCtrl:\n";
-                    var app = window.GetWebCtrl("GrgApp");
-                    var pool = window.GetWebCtrl("GrgDataPool");
-                    msg += "Got GrgApp: " + (!!app) + "\n";
-                    msg += "Got GrgDataPool: " + (!!pool) + "\n";
-                }
-
-                if (window.parentWindow && window.parentWindow.GetWebCtrl) {
-                    msg += "\nUsing parentWindow.GetWebCtrl:\n";
-                    var app2 = window.parentWindow.GetWebCtrl("GrgApp");
-                    var pool2 = window.parentWindow.GetWebCtrl("GrgDataPool");
-                    msg += "Got GrgApp: " + (!!app2) + "\n";
-                    msg += "Got GrgDataPool: " + (!!pool2) + "\n";
-                }
-            } catch (e) {
-                msg += "Error: " + e.message + "\n";
-            }
-
-            alert(msg);
-        }
-
         // Start initialization when page loads
         window.onload = function () {
-            console.log("000.html loaded");
             // Small delay to ensure parent is ready
             setTimeout(initializeState, 100);
         };

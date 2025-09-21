@@ -1,0 +1,45 @@
+{
+  "Devices": [
+    {
+      "LogicalName": "CardReader",
+      "Type": "IDC",
+      "Status": "ONLINE",
+      "RetainBinCount": 0
+    },
+    {
+      "LogicalName": "CashDispenser",
+      "Type": "CDM",
+      "Status": "ONLINE",
+      "CashUnits": [
+        {
+          "Denomination": 20,
+          "Count": 100,
+          "Currency": "GBP"
+        },
+        {
+          "Denomination": 10,
+          "Count": 200,
+          "Currency": "GBP"
+        },
+        {
+          "Denomination": 5,
+          "Count": 150,
+          "Currency": "GBP"
+        }
+      ]
+    },
+    {
+      "LogicalName": "PINPad",
+      "Type": "PIN",
+      "Status": "ONLINE",
+      "KeysLoaded": true
+    },
+    {
+      "LogicalName": "ReceiptPrinter",
+      "Type": "PTR",
+      "Status": "ONLINE",
+      "PaperLevel": 100
+    }
+  ]
+}
+

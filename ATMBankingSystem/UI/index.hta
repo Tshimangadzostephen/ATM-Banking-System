@@ -108,7 +108,7 @@
     </style>
 
     <script type="text/javascript">
-        // Define globals BEFORE anything else
+        //Globals
         var GrgApp = null;
         var GrgDataPool = null;
         var ATMControl = null;  // Main ActiveX control
@@ -116,7 +116,7 @@
         var logMessages = [];
         var usingActiveX = false;
 
-        // CRITICAL: Define GetWebCtrl immediately as a global function
+        // Define GetWebCtrl immediately as a global function
         // This MUST be available before any iframe loads
         window.GetWebCtrl = function (name) {
             // Make sure controls exist
@@ -128,15 +128,19 @@
             if (name === "GrgDataPool") return GrgDataPool;
             if (name === "ATMControl") return ATMControl;
             return null;
+
         };
 
+        //alert("HTA GetWebCtrl type: " + typeof window.GetWebCtrl);
+
+
         function initControls() {
-            // First, try to create real ActiveX controls
+            // Create real ActiveX controls
             try {
-                // Try the main ATM control
+                //main ATM control
                 ATMControl = new ActiveXObject("ATMBankingSystem.ATMControl");
 
-                // Try the GRG controls
+                //GRG controls
                 var testGrgApp = new ActiveXObject("ATMBankingSystem.GrgApp");
                 var testGrgDataPool = new ActiveXObject("ATMBankingSystem.GrgDataPool");
 
@@ -216,7 +220,7 @@
             if (!GrgApp) {
                 GrgApp = {
                     LogEvent: function (msg) {
-                        log("[Sim] " + msg);
+                        log("[Simulation] " + msg);
                     },
                     LoadState: function (st) {
                         loadState(st);
@@ -234,14 +238,14 @@
                 GrgDataPool = {
                     SetData: function (k, v) {
                         dataStore[k] = v;
-                        log("Sim Data set: " + k + " = " + v);
+                        log("Simulation Data set: " + k + " = " + v);
                     },
                     GetData: function (k) {
                         return dataStore[k] || null;
                     },
                     ClearData: function () {
                         dataStore = {};
-                        log("Sim Data cleared");
+                        log("Simulation Data cleared");
                     }
                 };
             }
@@ -303,16 +307,35 @@
         function insertTestCard() {
             if (!GrgDataPool) initControls();
 
-            // If using ActiveX with main control, use its methods
-            if (usingActiveX && ATMControl && ATMControl.InsertCard) {
-                ATMControl.InsertCard("4532123456789012");
-                log("Test card inserted via ActiveX");
-            } else {
-                // Use GrgDataPool method
-                GrgDataPool.SetData("CardNumber", "4532123456789012");
-                GrgDataPool.SetData("CardholderName", "JOHN DOE");
-                GrgDataPool.SetData("ExpiryDate", "12/25");
-                log("Test card inserted");
+            try {
+
+                // If using ActiveX with main control, try its methods
+                if (usingActiveX && ATMControl && ATMControl.InsertCard) {
+
+                    try {
+
+                        ATMControl.InsertCard("4532123456789012");
+                        log("Test card inserted via ActiveX");
+                    } catch (e) {
+                        // If InsertCard fails, fall back to SetData
+                        log("InsertCard failed, using SetData: " + e.message);
+                        if (GrgDataPool && GrgDataPool.SetData) {
+                            GrgDataPool.SetData("CardNumber", "4532123456789012");
+                            GrgDataPool.SetData("CardholderName", "JOHN DOE");
+                            GrgDataPool.SetData("ExpiryDate", "12/25");
+                        }
+                    }
+                } else {
+                    // Use GrgDataPool method
+                    if (GrgDataPool && GrgDataPool.SetData) {
+                        GrgDataPool.SetData("CardNumber", "4532123456789012");
+                        GrgDataPool.SetData("CardholderName", "JOHN DOE");
+                        GrgDataPool.SetData("ExpiryDate", "12/25");
+                    }
+                    log("Test card inserted");
+                }
+            } catch (e) {
+                log("Error inserting test card: " + e.message);
             }
 
             loadState('136');
