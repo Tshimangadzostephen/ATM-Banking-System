@@ -15,12 +15,12 @@ namespace ATMBankingSystem.GrgControls
     public class MockGrgDataPool
     {
         // Store all session data in a dictionary (like a simple database)
-        private Dictionary<string, object> dataPool = new Dictionary<string, object>();
+        private Dictionary<string, string> dataPool = new Dictionary<string, string>();
 
         /// <summary>
         /// Store a value with a key
         /// </summary>
-        public int SetData(string key, object value)
+        public int SetData(string key, string value)
         {
             try
             {
