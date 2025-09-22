@@ -341,6 +341,7 @@
                 alert("Error inserting card: " + e.message);
             }
         }
+
         function insertCardData(card) {
             try {
 
@@ -364,6 +365,12 @@
 
                 try {
                     GrgDataPool.SetData("PIN", card.pin);
+                } catch (e) {
+                    throw e;
+                }
+
+                try {
+                    GrgDataPool.SetData("Balance", card.balance);
                 } catch (e) {
                     throw e;
                 }

@@ -310,7 +310,7 @@
                 GrgDataPool.SetData("AuthCode", authCode.toString());
                 GrgDataPool.SetData("AuthStatus", "APPROVED");
                 if (!GrgDataPool.GetData("Balance")) {
-                    GrgDataPool.SetData("Balance", "1500");
+                    GrgDataPool.SetData("Balance", "1500"); //FAIL SAFE
                 }
             }
 

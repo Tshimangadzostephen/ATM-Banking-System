@@ -215,7 +215,7 @@
             </div>
             <div class="summary-item">
                 <span class="summary-label">Card:</span>
-                <span class="summary-value">****9012</span>
+                <span class="summary-value" id="cardNumber">****9012</span>
             </div>
             <div class="summary-item" id="amountRow">
                 <span class="summary-label">Amount:</span>
@@ -292,6 +292,10 @@
                 var transType = GrgDataPool.GetData("TransactionType");
                 var amount = GrgDataPool.GetData("Amount");
                 var authCode = GrgDataPool.GetData("AuthCode");
+
+                var cardNumber = GrgDataPool.GetData("CardNumber");
+                var maskedCardNumber = "****" + cardNumber.slice(-4);
+                document.getElementById("cardNumber").innerText = maskedCardNumber;
 
                 if (transType === "WITHDRAWAL" || transType === "FASTCASH") {
                     document.getElementById("transAmount").innerText = "R" + (amount || "0");

@@ -42,12 +42,12 @@
             display: block;
             max-width: 600px;
             width: 100%;
-            overflow: hidden; /* Clear floats */
+            overflow: hidden;
         }
 
         .menu-button {
             float: left;
-            width: calc(50% - 10px); /* Two columns with gap */
+            width: calc(50% - 10px);
             margin: 0 20px 20px 0;
             background: white;
             border: none;
@@ -64,7 +64,6 @@
             box-sizing: border-box;
         }
 
-            /* Every second button has no right margin */
             .menu-button:nth-child(2n) {
                 margin-right: 0;
             }
@@ -96,54 +95,30 @@
             color: white;
         }
 
-            .menu-button.withdrawal .menu-text {
-                color: white;
-            }
-
         .menu-button.balance {
             background: linear-gradient(135deg, #00BCD4 0%, #03A9F4 100%);
             color: white;
         }
-
-            .menu-button.balance .menu-text {
-                color: white;
-            }
 
         .menu-button.fastcash {
             background: linear-gradient(135deg, #FF9800 0%, #FFB74D 100%);
             color: white;
         }
 
-            .menu-button.fastcash .menu-text {
-                color: white;
-            }
-
         .menu-button.deposit {
             background: linear-gradient(135deg, #9C27B0 0%, #BA68C8 100%);
             color: white;
         }
-
-            .menu-button.deposit .menu-text {
-                color: white;
-            }
 
         .menu-button.transfer {
             background: linear-gradient(135deg, #F44336 0%, #EF5350 100%);
             color: white;
         }
 
-            .menu-button.transfer .menu-text {
-                color: white;
-            }
-
         .menu-button.statement {
             background: linear-gradient(135deg, #607D8B 0%, #90A4AE 100%);
             color: white;
         }
-
-            .menu-button.statement .menu-text {
-                color: white;
-            }
 
         .menu-button small {
             font-size: 12px;
@@ -192,7 +167,6 @@
 </head>
 <body>
     <div class="header">
-        <div class="welcome-text">Welcome, JOHN DOE</div>
         <div class="account-info">Please select a transaction</div>
     </div>
 
@@ -239,7 +213,7 @@
 
     <div class="timeout-indicator"></div>
 
-    <script>
+    <script type="text/javascript">
         var GrgApp = null;
         var GrgDataPool = null;
         var timeoutTimer = null;
@@ -252,7 +226,6 @@
         function initializeState() {
             if (initialized) return;
 
-            // Get controls using the injected method (same pattern as other states)
             if (window.GetWebCtrl && typeof window.GetWebCtrl === "function") {
                 try {
                     GrgApp = window.GetWebCtrl("GrgApp");
@@ -264,63 +237,112 @@
                         return;
                     }
                 } catch (e) {
-                    // Retry
+                    console.log("Error getting controls: " + e.message);
                 }
             }
 
-            // Retry after delay
             setTimeout(initializeState, 100);
         }
 
         function OnStateEntry() {
-            if (GrgApp) {
-                GrgApp.LogEvent("Enter State 141 - Transaction Selection");
+            try {
+                GrgApp.LogEvent("Enter State 766 - Balance Display");
+                console.log("Entered balance display");
+            } catch (e) {
+                console.log("LogEvent error: " + e.message);
             }
 
-            // Start 30 second timeout
-            timeoutTimer = setTimeout(function () {
-                OnTimeout();
-            }, 30000);
+            // Load dynamic balance and account info
+            loadAccountData();
+
+            // Display current date/time
+            var now = new Date();
+            document.getElementById("dateTime").innerText =
+                "Balance as of: " + now.toLocaleDateString() + " " + now.toLocaleTimeString();
+
+            // Start timeout
+            timeoutTimer = setTimeout(OnTimeout, 30000);
+        }
+
+        function loadAccountData() {
+            try {
+                // Get balance from card data
+                var balance = GrgDataPool.GetData("AccountBalance") || "1500.00";
+                var cardNumber = GrgDataPool.GetData("CardNumber");
+
+                console.log("Loading account data - Balance: " + balance + ", Card: " + (cardNumber ? "****" + cardNumber.substring(12) : "none"));
+
+                // Update balance display
+                document.getElementById("balanceValue").innerText =
+                    parseFloat(balance).toLocaleString('en-GB', { minimumFractionDigits: 2 });
+
+                // Update account number if available
+                if (cardNumber && cardNumber.length >= 4) {
+                    var accountElement = document.querySelector('.account-number');
+                    if (accountElement) {
+                        accountElement.innerText = "Account: ****" + cardNumber.substring(cardNumber.length - 4);
+                    }
+                }
+            } catch (e) {
+                console.log("Error loading account data: " + e.message);
+                // Use defaults if error
+            }
         }
 
         function selectTransaction(transactionType) {
             clearTimeout(timeoutTimer);
 
-            if (GrgDataPool) {
+            try {
                 GrgDataPool.SetData("TransactionType", transactionType);
+                console.log("Transaction type set: " + transactionType);
+            } catch (e) {
+                console.log("Error setting transaction type: " + e.message);
             }
 
-            if (GrgApp) {
+            try {
                 GrgApp.LogEvent("Transaction selected: " + transactionType);
+            } catch (e) {
+                console.log("LogEvent error: " + e.message);
             }
 
             // Route to appropriate state based on transaction
             switch (transactionType) {
                 case 'WITHDRAWAL':
-                    if (GrgApp) {
-                        GrgApp.LoadState("395"); // Go to amount entry
+                    try {
+                        GrgApp.LoadState("395");
+                    } catch (e) {
+                        console.log("Error loading state 395: " + e.message);
+                        if (window.parent && window.parent.loadState) {
+                            window.parent.loadState("395");
+                        }
                     }
                     break;
 
                 case 'BALANCE':
-                    if (GrgApp) {
-                        GrgApp.LoadState("789"); // Go to authorization for balance check
+                    try {
+                        GrgApp.LoadState("789");
+                    } catch (e) {
+                        console.log("Error loading state 789: " + e.message);
+                        if (window.parent && window.parent.loadState) {
+                            window.parent.loadState("789");
+                        }
                     }
                     break;
 
                 case 'FASTCASH':
-                    // Set fast cash amount and go to authorization
-                    if (GrgDataPool) {
+                    try {
                         GrgDataPool.SetData("Amount", "50");
                         GrgDataPool.SetData("FastCash", "true");
-                    }
-                    if (GrgApp) {
                         GrgApp.LoadState("789");
+                    } catch (e) {
+                        console.log("Error processing fast cash: " + e.message);
+                        if (window.parent && window.parent.loadState) {
+                            window.parent.loadState("789");
+                        }
                     }
                     break;
 
                 default:
-                    // Not implemented - show error
                     alert("This transaction is not available");
                     break;
             }
@@ -329,17 +351,28 @@
         function cancelTransaction() {
             clearTimeout(timeoutTimer);
 
-            if (GrgApp) {
+            try {
                 GrgApp.LogEvent("Transaction cancelled from main menu");
-                // Go to end transaction first, then it will return to idle
                 GrgApp.LoadState("909");
+            } catch (e) {
+                console.log("Error cancelling transaction: " + e.message);
+                if (window.parent && window.parent.loadState) {
+                    window.parent.loadState("909");
+                }
             }
         }
 
         function OnTimeout() {
-            if (GrgApp) {
+            console.log("Menu timeout");
+
+            try {
                 GrgApp.LogEvent("Menu timeout - returning to idle");
                 GrgApp.LoadState("000");
+            } catch (e) {
+                console.log("Error handling timeout: " + e.message);
+                if (window.parent && window.parent.loadState) {
+                    window.parent.loadState("000");
+                }
             }
         }
     </script>

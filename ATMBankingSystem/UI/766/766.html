@@ -185,36 +185,11 @@
     <div class="balance-container">
         <div class="title">Account Balance</div>
 
-        <div class="account-info">
-            <div class="account-number">Account: ****9012</div>
-            <div class="account-number">Type: Current Account</div>
-        </div>
-
         <div class="balance-display">
             <div class="balance-label">Current Balance</div>
             <div class="balance-amount">
                 <span class="currency-symbol">R</span>
-                <span id="balanceValue">1,500.00</span>
-            </div>
-            <div class="available-balance">
-                <div>Available Balance: R1,500.00</div>
-                <div>Overdraft Limit: R500.00</div>
-            </div>
-        </div>
-
-        <div class="mini-statement">
-            <div style="font-weight: bold; margin-bottom: 15px;">Recent Transactions</div>
-            <div class="transaction-item">
-                <span class="transaction-date">19/09 - Online Transfer</span>
-                <span class="transaction-amount credit">+ R250.00</span>
-            </div>
-            <div class="transaction-item">
-                <span class="transaction-date">18/09 - Card Payment</span>
-                <span class="transaction-amount debit">-R45.99</span>
-            </div>
-            <div class="transaction-item">
-                <span class="transaction-date">17/09 - ATM Withdrawal</span>
-                <span class="transaction-amount debit">-R100.00</span>
+                <span id="balanceValue">x,xxx</span>
             </div>
         </div>
 
@@ -271,7 +246,7 @@
                 "Balance as of: " + now.toLocaleDateString() + " " + now.toLocaleTimeString();
 
             // Get and display balance
-            var balance = "1500.00"; // default
+            var balance = "1500.00 - COM failed"; // default
             if (GrgDataPool) {
                 balance = GrgDataPool.GetData("Balance") || balance;
             }
