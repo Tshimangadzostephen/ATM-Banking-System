@@ -71,6 +71,24 @@
             font-family: monospace;
         }
 
+        .cardholder-name {
+            position: absolute;
+            bottom: 15px;
+            left: 50px;
+            font-size: 12px;
+            color: #555;
+            font-family: Arial, sans-serif;
+        }
+
+        .card-expiry {
+            position: absolute;
+            bottom: 15px;
+            right: 50px;
+            font-size: 12px;
+            color: #555;
+            font-family: monospace;
+        }
+
         .status-text {
             font-size: 24px;
             margin: 20px 0;
@@ -139,7 +157,9 @@
 
         <div class="card-animation">
             <div class="card-chip"></div>
-            <div class="card-number">**** **** **** 9012</div>
+            <div class="card-number" id="cardNumber">**** **** **** ****</div>
+            <div class="cardholder-name" id="cardholderName">CARDHOLDER NAME</div>
+            <div class="card-expiry" id="cardExpiry">MM/YY</div>
         </div>
 
         <div class="status-text">Please wait while we read your card...</div>
@@ -155,11 +175,12 @@
         <button class="cancel-button" onclick="cancelTransaction()">CANCEL</button>
     </div>
 
-    <script>
+    <script type="text/javascript">
         var GrgApp = null;
         var GrgDataPool = null;
         var readTimer = null;
         var initialized = false;
+        var stepTimers = []; // Keep track of all timers
 
         window.onload = function () {
             setTimeout(initializeState, 100);
@@ -168,7 +189,6 @@
         function initializeState() {
             if (initialized) return;
 
-            // Get controls using the injected method (same as 000.html)
             if (window.GetWebCtrl && typeof window.GetWebCtrl === "function") {
                 try {
                     GrgApp = window.GetWebCtrl("GrgApp");
@@ -180,7 +200,7 @@
                         return;
                     }
                 } catch (e) {
-                    // Retry
+                    console.log("Error getting controls: " + e.message);
                 }
             }
 
@@ -189,15 +209,76 @@
         }
 
         function OnStateEntry() {
-            if (GrgApp) {
+            try {
                 GrgApp.LogEvent("Enter State 136 - Card Read");
+                console.log("Entered state 136");
+            } catch (e) {
+                console.log("LogEvent error: " + e.message);
             }
+
+            // Load card data from COM component
+            loadCardData();
 
             // Simulate card reading process
             simulateCardReading();
         }
 
+        function loadCardData() {
+            try {
+                console.log("Loading card data...");
+
+                // Get card data from COM component
+                var cardNumber = GrgDataPool.GetData("CardNumber");
+                var cardholderName = GrgDataPool.GetData("CardholderName");
+                var expiryDate = GrgDataPool.GetData("ExpiryDate");
+
+                console.log("Card data retrieved:");
+                console.log("- Number: " + cardNumber);
+                console.log("- Name: " + cardholderName);
+                console.log("- Expiry: " + expiryDate);
+
+                // Update display with real data - NO FALLBACKS TO HARDCODED VALUES
+                if (cardNumber && cardNumber.length >= 4) {
+                    var maskedNumber = "**** **** **** " + cardNumber.substring(cardNumber.length - 4);
+                    document.getElementById("cardNumber").innerText = maskedNumber;
+                    console.log("Card number display updated: " + maskedNumber);
+                } else {
+                    console.log("WARNING: No card number found - using placeholder");
+                    document.getElementById("cardNumber").innerText = "**** **** **** ????";
+                }
+
+                if (cardholderName && cardholderName.length > 0) {
+                    document.getElementById("cardholderName").innerText = cardholderName;
+                    console.log("Cardholder name display updated: " + cardholderName);
+                } else {
+                    console.log("WARNING: No cardholder name found - using placeholder");
+                    document.getElementById("cardholderName").innerText = "NO NAME FOUND";
+                }
+
+                if (expiryDate && expiryDate.length > 0) {
+                    document.getElementById("cardExpiry").innerText = expiryDate;
+                    console.log("Expiry date display updated: " + expiryDate);
+                } else {
+                    console.log("WARNING: No expiry date found - using placeholder");
+                    document.getElementById("cardExpiry").innerText = "??/??";
+                }
+
+                console.log("Card display update complete");
+            } catch (e) {
+                console.log("ERROR loading card data: " + e.message);
+                // Even on error, don't use hardcoded values - show error state
+                document.getElementById("cardNumber").innerText = "**** **** **** ERR";
+                document.getElementById("cardholderName").innerText = "ERROR LOADING";
+                document.getElementById("cardExpiry").innerText = "ERR";
+            }
+        }
+
         function simulateCardReading() {
+            console.log("Starting card reading simulation");
+
+            // Clear any existing timers
+            clearAllTimers();
+
             var steps = [
                 { time: 500, message: "Reading magnetic stripe..." },
                 { time: 1000, message: "Checking card validity..." },
@@ -205,45 +286,96 @@
                 { time: 2000, message: "Card verified successfully!" }
             ];
 
+            // Set up step timers
             steps.forEach(function (step) {
-                setTimeout(function () {
-                    document.getElementById("statusMessage").innerText = step.message;
+                var timer = setTimeout(function () {
+                    console.log("Setting message: " + step.message);
+                    var statusElement = document.getElementById("statusMessage");
+                    if (statusElement) {
+                        statusElement.innerText = step.message;
+                    } else {
+                        console.log("ERROR: statusMessage element not found");
+                    }
                 }, step.time);
+
+                stepTimers.push(timer);
             });
 
             // After reading is complete, move to PIN entry
             readTimer = setTimeout(function () {
-                if (GrgDataPool) {
-                    // Card information should already be set from state 000
-                    var cardNumber = GrgDataPool.GetData("CardNumber");
-                    if (!cardNumber) {
-                        // If no card data, use test data
-                        GrgDataPool.SetData("CardNumber", "4532123456789012");
-                        GrgDataPool.SetData("CardholderName", "JOHN DOE");
-                    }
-                }
+                try {
+                    console.log("Card reading complete, checking for card data...");
 
-                if (GrgApp) {
+                    // Verify card data exists
+                    var cardNumber = GrgDataPool.GetData("CardNumber");
+                    console.log("Card number from GrgDataPool: " + (cardNumber ? "****" + cardNumber.substring(12) : "null"));
+
+                    if (!cardNumber) {
+                        console.log("ERROR: No card data found, returning to idle");
+                        GrgApp.LogEvent("ERROR: No card data found in state 136");
+                        GrgApp.LoadState("000");
+                        return;
+                    }
+
+                    console.log("Moving to PIN entry state 137");
                     GrgApp.LogEvent("Card read complete - moving to PIN entry");
                     GrgApp.LoadState("137");
+                } catch (e) {
+                    console.log("Error in final card read step: " + e.message);
+                    // If COM fails, try parent fallback
+                    if (window.parent && window.parent.loadState) {
+                        console.log("Using parent fallback to load state 137");
+                        window.parent.loadState("137");
+                    }
                 }
             }, 2500);
+
+            console.log("Card reading timers set up");
+        }
+
+        function clearAllTimers() {
+            // Clear step timers
+            stepTimers.forEach(function (timer) {
+                clearTimeout(timer);
+            });
+            stepTimers = [];
+
+            // Clear main timer
+            if (readTimer) {
+                clearTimeout(readTimer);
+                readTimer = null;
+            }
         }
 
         function cancelTransaction() {
-            clearTimeout(readTimer);
+            console.log("Cancel transaction called");
 
-            if (GrgApp) {
+            clearAllTimers();
+
+            try {
                 GrgApp.LogEvent("Transaction cancelled during card read");
+            } catch (e) {
+                console.log("LogEvent error: " + e.message);
             }
 
             // Clear data and return to idle
-            if (GrgDataPool) {
+            try {
                 GrgDataPool.ClearData();
+                console.log("Data cleared");
+            } catch (e) {
+                console.log("ClearData error: " + e.message);
             }
 
-            if (GrgApp) {
+            try {
                 GrgApp.LoadState("000");
+                console.log("Returned to idle state");
+            } catch (e) {
+                console.log("LoadState error: " + e.message);
+                // If COM fails, try parent fallback
+                if (window.parent && window.parent.loadState) {
+                    console.log("Using parent fallback to return to idle");
+                    window.parent.loadState("000");
+                }
             }
         }
 
