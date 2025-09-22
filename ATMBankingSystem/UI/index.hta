@@ -65,6 +65,14 @@
             background: #0088ff;
         }
 
+        .actionBtn.secondary {
+            background: #666;
+        }
+
+        .actionBtn.secondary:hover {
+            background: #888;
+        }
+
         #logArea {
             flex: 1;
             background: #000;
@@ -105,21 +113,57 @@
         .status-indicator.simulation {
             background: #7d7d2e;
         }
+
+        .card-info {
+            background: #333;
+            padding: 8px;
+            margin: 10px 0;
+            border-radius: 3px;
+            font-size: 11px;
+        }
     </style>
 
     <script type="text/javascript">
         //Globals
         var GrgApp = null;
         var GrgDataPool = null;
-        var ATMControl = null;  // Main ActiveX control
+        var ATMControl = null;
         var currentState = '000';
         var logMessages = [];
         var usingActiveX = false;
 
+        // Card database - you can easily add more cards here
+        var testCards = [
+            {
+                number: "4532123456789012",
+                holder: "JOHN DOE",
+                expiry: "12/25",
+                pin: "1234",
+                balance: 1500.00,
+                name: "John's Visa"
+            },
+            {
+                number: "5555666677778888",
+                holder: "JANE SMITH",
+                expiry: "06/26",
+                pin: "5678",
+                balance: 2500.00,
+                name: "Jane's Mastercard"
+            },
+            {
+                number: "4111111111111111",
+                holder: "BOB JOHNSON",
+                expiry: "03/27",
+                pin: "9876",
+                balance: 750.00,
+                name: "Bob's Test Card"
+            }
+        ];
+
+        var currentCardIndex = 0;
+
         // Define GetWebCtrl immediately as a global function
-        // This MUST be available before any iframe loads
         window.GetWebCtrl = function (name) {
-            // Make sure controls exist
             if (!GrgApp || !GrgDataPool) {
                 initControls();
             }
@@ -128,92 +172,89 @@
             if (name === "GrgDataPool") return GrgDataPool;
             if (name === "ATMControl") return ATMControl;
             return null;
-
         };
-
-        //alert("HTA GetWebCtrl type: " + typeof window.GetWebCtrl);
-
 
         function initControls() {
             // Create real ActiveX controls
             try {
-                //main ATM control
                 ATMControl = new ActiveXObject("ATMBankingSystem.ATMControl");
-
-                //GRG controls
                 var testGrgApp = new ActiveXObject("ATMBankingSystem.GrgApp");
                 var testGrgDataPool = new ActiveXObject("ATMBankingSystem.GrgDataPool");
 
-                // If we get here, ActiveX is available
                 if (ATMControl && testGrgApp && testGrgDataPool) {
                     log("ActiveX controls detected - using real controls");
 
-                    // Initialize the main control
-                    if (ATMControl.Initialize) {
+                    // Initialize controls
+                    try {
                         ATMControl.Initialize();
                         log("ATM ActiveX Control initialized");
+                    } catch (e) {
+                        log("Error initializing ATMControl: " + e.message);
                     }
 
-                    // Initialize GRG controls
-                    if (testGrgApp.Init) {
+                    try {
                         testGrgApp.Init();
                         log("GrgApp ActiveX Control initialized");
+                    } catch (e) {
+                        log("Error initializing GrgApp: " + e.message);
                     }
 
-                    // Create wrapper objects that match our interface
+                    // Create wrapper objects with direct calls
                     GrgApp = {
                         LogEvent: function (msg) {
                             log("[ActiveX] " + msg);
-                            if (testGrgApp.LogEvent) {
+                            try {
                                 testGrgApp.LogEvent(msg);
+                            } catch (e) {
+                                log("LogEvent error: " + e.message);
                             }
                         },
                         LoadState: function (st) {
-                            if (testGrgApp.LoadState) {
+                            try {
                                 testGrgApp.LoadState(st);
+                            } catch (e) {
+                                log("LoadState error: " + e.message);
                             }
-                            loadState(st);  // Also update our iframe
+                            loadState(st);
                         },
                         GetCurrentState: function () {
-                            if (testGrgApp.GetCurrentState) {
+                            try {
                                 return testGrgApp.GetCurrentState();
+                            } catch (e) {
+                                log("GetCurrentState error: " + e.message);
+                                return currentState;
                             }
-                            return currentState;
                         },
-                        // Store reference to actual ActiveX object
                         activeXObject: testGrgApp
                     };
 
                     GrgDataPool = {
                         SetData: function (k, v) {
-                            log("=== DIRECT CALL TEST ===");
-                            log("Attempting to call SetData directly despite 'unknown' type...");
-
                             try {
-                                // Try calling the method anyway
-                                var result = testGrgDataPool.SetData(k, v);
-                                log("SUCCESS: SetData returned " + result);
-                                return result;
+                                log("ActiveX SetData: " + k + " = " + v);
+                                return testGrgDataPool.SetData(k, v);
                             } catch (e) {
-                                log("FAILED: " + e.message);
-                                log("Error number: " + e.number);
-                                log("Error description: " + (e.description || "none"));
+                                log("SetData error: " + e.message);
                                 throw e;
                             }
                         },
                         GetData: function (k) {
-                            if (testGrgDataPool.GetData) {
+                            try {
                                 return testGrgDataPool.GetData(k);
+                            } catch (e) {
+                                log("GetData error: " + e.message);
+                                return null;
                             }
-                            return null;
                         },
                         ClearData: function () {
-                            log("ActiveX Data cleared");
-                            if (testGrgDataPool.ClearData) {
+                            try {
+                                log("ActiveX ClearData called");
                                 return testGrgDataPool.ClearData();
+                            } catch (e) {
+                                log("ClearData error: " + e.message);
+                                return -1;
                             }
                         },
-                        // Store reference to actual ActiveX object
                         activeXObject: testGrgDataPool
                     };
 
@@ -242,13 +283,13 @@
             }
 
             if (!GrgDataPool) {
-                // Use a simple object instead of sessionStorage (not supported in HTA)
                 var dataStore = {};
 
                 GrgDataPool = {
                     SetData: function (k, v) {
                         dataStore[k] = v;
                         log("Simulation Data set: " + k + " = " + v);
+                        return 0;
                     },
                     GetData: function (k) {
                         return dataStore[k] || null;
@@ -256,12 +297,97 @@
                     ClearData: function () {
                         dataStore = {};
                         log("Simulation Data cleared");
+                        return 0;
                     }
                 };
             }
 
             usingActiveX = false;
             updateStatusIndicator("Simulation Mode");
+        }
+
+        function insertTestCard() {
+            if (!GrgDataPool) initControls();
+            try {
+                var card = testCards[currentCardIndex];
+                //log("Inserting " + card.name + " (****" + card.number.substring(12) + ")");
+
+                if (usingActiveX && ATMControl) {
+                    try {
+                        log("ATMControl.InsertCard type: " + typeof ATMControl.InsertCard);
+                        //alert("About to call ATMControl.InsertCard()");
+
+                        var result = ATMControl.InsertCard(card.number);
+
+                        //alert("ATMControl.InsertCard returned: " + result);
+                        log("ATMControl.InsertCard succeeded, returned: " + result);
+
+                        // Test if we can retrieve the card from ATMControl
+                        var retrievedCard = ATMControl.GetCardNumber();
+                        log("Retrieved from ATMControl: " + retrievedCard);
+
+                    } catch (e) {
+                        //alert("ATMControl.InsertCard failed: " + e.message);
+                        log("ATMControl.InsertCard failed: " + e.message);
+                    }
+                }
+
+                // Also set in GrgDataPool as backup
+                insertCardData(card);
+
+                loadState('136');
+            } catch (e) {
+                log("Error inserting test card: " + e.message);
+                alert("Error inserting card: " + e.message);
+            }
+        }
+        function insertCardData(card) {
+            try {
+
+                try {
+                    GrgDataPool.SetData("CardNumber", card.number);
+                } catch (e) {
+                    throw e;
+                }
+
+                try {
+                    GrgDataPool.SetData("CardholderName", card.holder);
+                } catch (e) {
+                    throw e;
+                }
+
+                try {
+                    GrgDataPool.SetData("ExpiryDate", card.expiry);
+                } catch (e) {
+                    throw e;
+                }
+                // Test retrieval
+                var storedCard = GrgDataPool.GetData("CardNumber");
+
+            } catch (e) {
+                log("ERROR storing card data: " + e.message);
+                throw e;
+            }
+        }
+
+        function switchTestCard() {
+            currentCardIndex = (currentCardIndex + 1) % testCards.length;
+            var card = testCards[currentCardIndex];
+
+            log("Switched to " + card.name + " (****" + card.number.substring(12) + ")");
+            updateCardDisplay();
+        }
+
+        function updateCardDisplay() {
+            var card = testCards[currentCardIndex];
+            var cardInfo = document.getElementById('cardInfo');
+            if (cardInfo) {
+                cardInfo.innerHTML =
+                    '<div><strong>' + card.name + '</strong></div>' +
+                    '<div>Card: ****' + card.number.substring(12) + '</div>' +
+                    '<div>PIN: ' + card.pin + '</div>' +
+                    '<div>Balance: R' + card.balance.toFixed(2) + '</div>';
+            }
         }
 
         function updateStatusIndicator(status) {
@@ -290,14 +416,10 @@
             var frame = document.getElementById('stateFrame');
             if (frame) {
                 try {
-                    // Always use the same path structure from index.hta's perspective
                     var statePath = './' + st + '/' + st + '.html';
-
-                    // Set src directly - this always works from parent's perspective
                     frame.src = statePath;
                     log("Loading state " + st);
 
-                    // After frame loads, inject controls
                     frame.onload = frame.onreadystatechange = function () {
                         try {
                             if (frame.contentWindow) {
@@ -314,52 +436,19 @@
             }
         }
 
-        function insertTestCard() {
-            if (!GrgDataPool) initControls();
-
-            try {
-
-                // If using ActiveX with main control, try its methods
-                if (usingActiveX && ATMControl && ATMControl.InsertCard) {
-
-                    try {
-
-                        ATMControl.InsertCard("4532123456789012");
-                        log("Test card inserted via ActiveX");
-                    } catch (e) {
-                        // If InsertCard fails, fall back to SetData
-                        log("InsertCard failed, using SetData: " + e.message);
-                        if (GrgDataPool && GrgDataPool.SetData) {
-                            GrgDataPool.SetData("CardNumber", "4532123456789012");
-                            GrgDataPool.SetData("CardholderName", "JOHN DOE");
-                            GrgDataPool.SetData("ExpiryDate", "12/25");
-                        }
-                    }
-                } else {
-                    // Use GrgDataPool method
-                    if (GrgDataPool && GrgDataPool.SetData) {
-                        GrgDataPool.SetData("CardNumber", "4532123456789012");
-                        GrgDataPool.SetData("CardholderName", "JOHN DOE");
-                        GrgDataPool.SetData("ExpiryDate", "12/25");
-                    }
-                    log("Test card inserted");
-                }
-            } catch (e) {
-                log("Error inserting test card: " + e.message);
-            }
-
-            loadState('136');
-        }
-
         function resetSystem() {
-            if (usingActiveX && ATMControl && ATMControl.Initialize) {
-                ATMControl.Initialize();
-                log("System reset via ActiveX");
-            } else if (GrgDataPool) {
-                GrgDataPool.ClearData();
-                log("System reset");
+            try {
+                if (usingActiveX && ATMControl) {
+                    ATMControl.Initialize();
+                    log("System reset via ActiveX");
+                } else if (GrgDataPool) {
+                    GrgDataPool.ClearData();
+                    log("System reset");
+                }
+                loadState('000');
+            } catch (e) {
+                log("Error resetting system: " + e.message);
             }
-            loadState('000');
         }
 
         function testActiveX() {
@@ -372,26 +461,50 @@
                 msg += "- GrgApp: " + (GrgApp && GrgApp.activeXObject ? "Yes" : "No") + "\n";
                 msg += "- GrgDataPool: " + (GrgDataPool && GrgDataPool.activeXObject ? "Yes" : "No") + "\n";
 
-                if (ATMControl) {
+                if (GrgDataPool) {
                     try {
-                        msg += "\nATMControl Methods:\n";
-                        msg += "- GetVersion: " + (ATMControl.GetVersion ? ATMControl.GetVersion() : "N/A") + "\n";
-                        msg += "- GetCurrentState: " + (ATMControl.GetCurrentState ? ATMControl.GetCurrentState() : "N/A") + "\n";
+                        msg += "\nCurrent Card Data:\n";
+                        var cardNum = GrgDataPool.GetData("CardNumber");
+                        msg += "- Card number: " + (cardNum ? "****" + cardNum.substring(12) : "None") + "\n";
+                        var holder = GrgDataPool.GetData("CardholderName");
+                        msg += "- Cardholder: " + (holder || "None") + "\n";
                     } catch (e) {
-                        msg += "\nError accessing ATMControl: " + e.message;
+                        msg += "\nError testing GrgDataPool: " + e.message;
                     }
                 }
             } else {
                 msg += "\nActiveX controls not available.\n";
                 msg += "Running in JavaScript simulation mode.\n";
-                msg += "\nTo use ActiveX:\n";
-                msg += "1. Build the C# projects\n";
-                msg += "2. Register DLLs with: regasm /codebase\n";
-                msg += "3. Restart this application\n";
             }
 
             alert(msg);
         }
+
+        // Initialize AFTER page loads
+        window.onload = function () {
+            initControls();
+
+            var frame = document.getElementById('stateFrame');
+            if (frame) {
+                frame.onload = frame.onreadystatechange = function () {
+                    try {
+                        if (frame.contentWindow) {
+                            frame.contentWindow.GetWebCtrl = window.GetWebCtrl;
+                            frame.contentWindow.parentWindow = window;
+                        }
+                    } catch (e) {
+                        // Ignore errors
+                    }
+                };
+            }
+
+            // Initialize card display
+            updateCardDisplay();
+
+            setTimeout(function () {
+                loadState('000');
+            }, 100);
+        };
     </script>
 </head>
 <body>
@@ -403,14 +516,14 @@
             <div id="statusIndicator" class="status-indicator">Initializing...</div>
             
             <button class="actionBtn" onclick="insertTestCard()">Insert Card</button>
+            <button class="actionBtn secondary" onclick="switchTestCard()">Switch Card</button>
             <button class="actionBtn" onclick="resetSystem()">Reset System</button>
-            <button class="actionBtn" onclick="loadState('000')">Back to Idle</button>
-            <button class="actionBtn" onclick="testActiveX()">Test ActiveX</button>
+            <button class="actionBtn" onclick="loadState('000')">Back to Start</button>
+            
+             <!-- DEBUG ACTIVEX CONTROLS -->
+             <!-- <button class="actionBtn" onclick="testActiveX()">Test ActiveX</button> -->
 
-            <div style="margin-top: 20px; font-size: 12px;">
-                <div>Test PIN: 1234</div>
-                <div>Card: 4532123456789012</div>
-            </div>
+            <div id="cardInfo" class="card-info"></div>
 
             <div id="logArea"></div>
         </div>
@@ -420,36 +533,7 @@
             <iframe id="stateFrame" name="stateFrame"></iframe>
         </div>
     </div>
-
-    <script type="text/javascript">
-        // Initialize AFTER page loads
-        window.onload = function () {
-            // Initialize controls first
-            initControls();
-
-            // Set up frame communication using a different method
-            var frame = document.getElementById('stateFrame');
-            if (frame) {
-                // For HTA, inject controls directly into frame's window object
-                frame.onload = frame.onreadystatechange = function () {
-                    try {
-                        if (frame.contentWindow) {
-                            // Inject GetWebCtrl function into frame
-                            frame.contentWindow.GetWebCtrl = window.GetWebCtrl;
-                            // Also inject parent reference
-                            frame.contentWindow.parentWindow = window;
-                        }
-                    } catch (e) {
-                        // Ignore errors
-                    }
-                };
-            }
-
-            // Give it a moment to settle, then load initial state
-            setTimeout(function () {
-                loadState('000');
-            }, 100);
-        };
-    </script>
+</body>
+</html></div>
 </body>
 </html>
