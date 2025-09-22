@@ -304,32 +304,102 @@
         }
 
         function confirmAmount() {
-            var amount = parseInt(currentAmount);
+            // helper: convert a numeric string to cents (integer)
+            function toCents(value) {
+                if (value === null || value === undefined) return NaN;
+                var s = value.toString().trim();
 
-            if (amount <= 0) {
+                // Remove currency symbols and thousands separators (commas)
+                s = s.replace(/[^0-9\.\-]/g, ""); // leave digits, dot and minus
+                s = s.replace(/,/g, ""); // remove commas if any
+
+                if (s === "") return NaN;
+                var f = parseFloat(s);
+                if (isNaN(f)) return NaN;
+                return Math.round(f * 100); // cents
+            }
+
+            function fromCents(cents) {
+                return (cents / 100).toFixed(2);
+            }
+
+            // Parse entered amount (currentAmount is set by keypad / quick buttons)
+            var amountCents = toCents(currentAmount);
+            if (isNaN(amountCents) || amountCents <= 0) {
                 document.getElementById("errorMessage").innerText = "Please enter a valid amount";
                 return;
             }
 
-            if (amount > 500) {
-                document.getElementById("errorMessage").innerText = "Amount exceeds daily limit";
+            // R500 limit -> in cents
+            var limitCents = 500 * 100;
+            if (amountCents > limitCents) {
+                document.getElementById("errorMessage").innerText = "Amount exceeds R500 limit";
                 return;
             }
 
-            // Check if amount is multiple of 5 (available denominations)
-            if (amount % 5 !== 0) {
+            // multiple of R5 check -> in cents (R5 = 500 cents)
+            if ((amountCents % 500) !== 0) {
                 document.getElementById("errorMessage").innerText = "Amount must be multiple of R5";
                 return;
             }
 
-            if (GrgDataPool) {
-                GrgDataPool.SetData("Amount", amount.toString());
-            }
+            try {
+                // Read balance from the data pool
+                var balRaw = null;
+                try {
+                    balRaw = GrgDataPool.GetData("Balance");
+                } catch (e) {
+                    // If GetData throws, treat as no balance set
+                    balRaw = null;
+                    console.log("GetData('Balance') threw: " + e.message);
+                }
 
-            if (GrgApp) {
-                GrgApp.LogEvent("Amount entered: R" + amount);
-                // Use only GrgApp.LoadState, not GrgApp.loadState
-                GrgApp.LoadState("789");
+                var balanceCents = toCents(balRaw);
+                if (isNaN(balanceCents)) {
+                    // If no valid balance, treat as zero (or fail depending on your policy)
+                    balanceCents = 0;
+                }
+
+                console.log("DEBUG: currentAmount (raw) = '" + currentAmount + "'");
+                console.log("DEBUG: amountCents = " + amountCents);
+                console.log("DEBUG: balanceCents = " + balanceCents);
+
+                var newBalanceCents = balanceCents - amountCents;
+                if (newBalanceCents < 0) {
+                    document.getElementById("errorMessage").innerText = "Insufficient funds";
+                    return;
+                }
+
+                // Persist Amount and new Balance (store balance as string with 2 decimals)
+                try {
+                    GrgDataPool.SetData("Amount", (amountCents / 100).toFixed(2));
+                    GrgDataPool.SetData("Balance", fromCents(newBalanceCents));
+                } catch (e) {
+                    // If SetData throws or fails, report it
+                    console.log("SetData error: " + e.message);
+                }
+
+                // Optional: persist CurrentCardNumber balance if you use that (not required if single-card session)
+                try {
+                    var currentCard = "";
+                    try { currentCard = GrgDataPool.GetData("CardNumber"); } catch (_) { currentCard = ""; }
+                    if (currentCard && currentCard.toString().trim() !== "") {
+                        GrgDataPool.SetData("Balance_" + currentCard, fromCents(newBalanceCents));
+                    }
+                } catch (e) {
+                    console.log("Persist per-card balance error: " + e.message);
+                }
+
+                // Logging & navigation
+                if (GrgApp) {
+                    GrgApp.LogEvent("Amount entered: R" + (amountCents / 100).toFixed(2) + " | New balance: R" + fromCents(newBalanceCents));
+                    GrgApp.LoadState("789"); // go to authorization
+                } else {
+                    console.log("GrgApp not available; new balance = R" + fromCents(newBalanceCents));
+                }
+            } catch (e) {
+                console.log("Unexpected error in confirmAmount: " + e.message);
+                document.getElementById("errorMessage").innerText = "Error updating balance";
             }
 
             clearTimeout(timeoutTimer);

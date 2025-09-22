@@ -370,10 +370,16 @@
                 }
 
                 try {
-                    GrgDataPool.SetData("Balance", card.balance);
+                    var bal = "";
+                    try { bal = GrgDataPool.GetData("Balance"); } catch (_) { }
+
+                    if (!bal || bal.trim() === "") {
+                        GrgDataPool.SetData("Balance", card.balance.toString());
+                    }
                 } catch (e) {
                     throw e;
                 }
+
                 // Test retrieval
                 var storedCard = GrgDataPool.GetData("CardNumber");
 
@@ -398,8 +404,8 @@
                 cardInfo.innerHTML =
                     '<div><strong>' + card.name + '</strong></div>' +
                     '<div>Card: ****' + card.number.substring(12) + '</div>' +
-                    '<div>PIN: ' + card.pin + '</div>' +
-                    '<div>Balance: R' + card.balance.toFixed(2) + '</div>';
+                    '<div>PIN: ' + card.pin + '</div>'; //+
+                    //'<div>Balance: R' + card.balance.toFixed(2) + '</div>';
             }
         }
 
