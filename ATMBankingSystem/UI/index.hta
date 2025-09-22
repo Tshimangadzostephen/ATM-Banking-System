@@ -361,6 +361,12 @@
                 } catch (e) {
                     throw e;
                 }
+
+                try {
+                    GrgDataPool.SetData("PIN", card.pin);
+                } catch (e) {
+                    throw e;
+                }
                 // Test retrieval
                 var storedCard = GrgDataPool.GetData("CardNumber");
 
