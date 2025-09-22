@@ -65,6 +65,21 @@
             border-radius: 10px;
             position: relative;
             box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+
+            100% {
+                opacity: 1;
+            }
         }
 
         .bottom-info {
@@ -75,43 +90,39 @@
             opacity: 0.8;
         }
 
-        .test-button {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            padding: 10px 20px;
-            background: rgba(255,255,255,0.2);
-            color: white;
-            border: 2px solid white;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
+        .instructions {
+            font-size: 18px;
+            margin: 20px 0;
+            opacity: 0.9;
+            animation: blink 3s infinite;
         }
 
-            .test-button:hover {
-                background: rgba(255,255,255,0.3);
+        @keyframes blink {
+            0%, 50% {
+                opacity: 0.9;
             }
+
+            25% {
+                opacity: 0.5;
+            }
+        }
     </style>
 </head>
 <body>
-    <button class="test-button" onclick="simulateCardInsert()">Insert Card</button>
-
     <div class="welcome-container">
         <div class="bank-logo">🏦 UNIVERSAL BANK</div>
         <div class="insert-card">Please Insert Your Card</div>
         <div class="card-slot"></div>
+        <div class="instructions">Use the "Insert Card" button on the control panel to begin</div>
     </div>
 
     <script type="text/javascript">
         var GrgApp = null;
         var GrgDataPool = null;
         var checkCardInterval = null;
-        var initialized = false; // Prevent multiple initialization
-        var retryCount = 0;
-        var maxRetries = 50;
+        var initialized = false;
 
         function initializeState() {
-            // PREVENT MULTIPLE INITIALIZATION
             if (initialized) return;
 
             if (window.GetWebCtrl && typeof window.GetWebCtrl === "function") {
@@ -120,118 +131,59 @@
                     GrgDataPool = window.GetWebCtrl("GrgDataPool");
 
                     if (GrgApp && GrgDataPool) {
-                        //alert("Controls initialized.");
-                        // Mark as initialized BEFORE calling OnStateEntry
                         initialized = true;
                         OnStateEntry();
                         return;
                     }
                 } catch (e) {
-                    // If error, retry
+                    // Retry if error
                 }
             }
 
-            // Controls not ready, retry
-            retryCount++;
-            if (retryCount < maxRetries) {
-                setTimeout(initializeState, 100);
-            } else {
-                // Mark as initialized to stop retrying
-                initialized = true;
-                alert("Failed to initialize controls after multiple attempts. Running in limited mode.");
-            }
+            // Retry after delay
+            setTimeout(initializeState, 100);
         }
 
         function OnStateEntry() {
-            // Only log once
-            if (GrgApp && GrgApp.LogEvent) {
+            try {
                 GrgApp.LogEvent("Enter State 000 - Idle");
+                console.log("Entered idle state 000");
+            } catch (e) {
+                console.log("LogEvent error: " + e.message);
             }
 
             // Clear any previous session data
-            if (GrgDataPool && GrgDataPool.ClearData) {
-                try {
-                    GrgDataPool.ClearData();
-                } catch (e) {
-                    // Ignore clear data errors
-                }
+            try {
+                GrgDataPool.ClearData();
+                console.log("Previous session data cleared");
+            } catch (e) {
+                console.log("ClearData error: " + e.message);
             }
 
-            // Start checking for card insertion
+            // Start monitoring for card insertion from external source (index.hta)
             startCardCheck();
         }
 
         function startCardCheck() {
-            // Clear any existing interval first
+            // Clear any existing interval
             if (checkCardInterval) {
                 clearInterval(checkCardInterval);
             }
 
-            // Check every second if a card has been inserted
+            // Check every second if a card has been inserted externally
             checkCardInterval = setInterval(function () {
-                if (GrgDataPool && GrgDataPool.GetData) {
-                    try {
-                        var cardNumber = GrgDataPool.GetData("CardNumber");
-                        if (cardNumber && cardNumber.length > 0) {
-                            // Card detected - move to card read state
-                            clearInterval(checkCardInterval);
-                            moveToCardRead();
-                        }
-                    } catch (e) {
-                        // Ignore errors in checking
+                try {
+                    var cardNumber = GrgDataPool.GetData("CardNumber");
+                    if (cardNumber && cardNumber.length > 0) {
+                        console.log("Card detected from external source: ****" + cardNumber.substring(cardNumber.length - 4));
+                        // Card detected - move to card read state
+                        clearInterval(checkCardInterval);
+                        moveToCardRead();
                     }
+                } catch (e) {
+                    // Ignore errors in checking
                 }
             }, 1000);
-        }
-
-        function simulateCardInsert() {
-            // Try to get controls if they're not set
-            if (!GrgDataPool || !GrgApp) {
-                if (window.GetWebCtrl) {
-                    GrgApp = window.GetWebCtrl("GrgApp");
-                    GrgDataPool = window.GetWebCtrl("GrgDataPool");
-                }
-            }
-
-            // Check if we have controls
-            if (!GrgDataPool || !GrgApp) {
-                alert("Controls not initialized. Please wait and try again.");
-                return;
-            }
-
-            // Simulate card insertion for testing
-            try {
-
-                if (GrgDataPool.SetData) {
-
-                    //alert("Setting test card data...");
-
-                    // Try to set data - handle different possible method signatures
-                    try {
-                        GrgDataPool.SetData("CardNumber", "4532123456789012");
-                        alert("CardNumber set.");
-                    } catch (e) {
-                        alert("Error: " + e.message);
-                    }
-
-                    //alert("CardNumber set.");
-                    //GrgDataPool.SetData("CardholderName", "JOHN DOE");
-                    //GrgDataPool.SetData("ExpiryDate", "12/25");
-                }
-            } catch (e) {
-                alert("Error setting card data: " + e.message);
-                return;
-            }
-
-            if (GrgApp && GrgApp.LogEvent) {
-                try {
-                    GrgApp.LogEvent("Test card inserted");
-                } catch (e) {
-                    // Ignore logging errors
-                }
-            }
-
-            moveToCardRead();
         }
 
         function moveToCardRead() {
@@ -239,36 +191,31 @@
                 clearInterval(checkCardInterval);
             }
 
-            if (GrgApp && GrgApp.LogEvent) {
-                try {
-                    GrgApp.LogEvent("Card detected - moving to state 136");
-                } catch (e) { }
+            try {
+                GrgApp.LogEvent("Card detected - moving to state 136");
+                console.log("Transitioning to card read state");
+            } catch (e) {
+                console.log("LogEvent error: " + e.message);
             }
 
-            if (GrgApp && GrgApp.LoadState) {
-                try {
-                    GrgApp.LoadState("136");
-                } catch (e) {
-                    // If ActiveX LoadState fails, try parent
-                    if (window.parent && window.parent.loadState) {
-                        window.parent.loadState("136");
-                    }
-                }
-            } else {
-                // Fallback - try to call parent directly
+            try {
+                GrgApp.LoadState("136");
+            } catch (e) {
+                console.log("LoadState error: " + e.message);
+                // If COM fails, try parent fallback
                 if (window.parent && window.parent.loadState) {
+                    console.log("Using parent fallback to load state 136");
                     window.parent.loadState("136");
                 }
             }
         }
 
         function OnTimeout() {
-            // No timeout in idle state - it waits forever for a card
+            // No timeout in idle state - it waits indefinitely
         }
 
-        // Start initialization when page loads
+        // Initialize when page loads
         window.onload = function () {
-            // Small delay to ensure parent is ready
             setTimeout(initializeState, 100);
         };
     </script>
