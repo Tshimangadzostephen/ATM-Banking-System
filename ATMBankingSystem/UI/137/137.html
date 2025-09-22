@@ -123,7 +123,6 @@
             width: 0;
             transition: width 30s linear;
         }
-
     </style>
 </head>
 <body>
@@ -155,13 +154,14 @@
 
     <div class="timeout-bar" id="timeoutBar"></div>
 
-    <script>
+    <script type="text/javascript">
         var GrgApp = null;
         var GrgDataPool = null;
         var enteredPIN = "";
         var pinAttempts = 0;
         var timeoutTimer = null;
         var initialized = false;
+        var expectedPIN = "1234"; // Default fallback
 
         window.onload = function () {
             setTimeout(initializeState, 100);
@@ -170,7 +170,6 @@
         function initializeState() {
             if (initialized) return;
 
-            // Get controls using the injected method (same as 000.html and 136.html)
             if (window.GetWebCtrl && typeof window.GetWebCtrl === "function") {
                 try {
                     GrgApp = window.GetWebCtrl("GrgApp");
@@ -182,29 +181,56 @@
                         return;
                     }
                 } catch (e) {
-                    // Retry
+                    console.log("Error getting controls: " + e.message);
                 }
             }
 
-            // Retry after delay
             setTimeout(initializeState, 100);
         }
 
         function OnStateEntry() {
-            if (GrgApp) {
+            try {
                 GrgApp.LogEvent("Enter State 137 - PIN Entry");
+                console.log("Entered PIN entry state");
+            } catch (e) {
+                console.log("LogEvent error: " + e.message);
             }
 
+            // Load the expected PIN from card data
+            loadCardPIN();
+
             // Get PIN attempts if any
-            if (GrgDataPool) {
+            try {
                 var attempts = GrgDataPool.GetData("PINAttempts");
                 if (attempts) {
                     pinAttempts = parseInt(attempts);
+                    console.log("Previous PIN attempts: " + pinAttempts);
                 }
+            } catch (e) {
+                console.log("Error getting PIN attempts: " + e.message);
             }
 
             // Start timeout (30 seconds)
             startTimeout();
+        }
+
+        function loadCardPIN() {
+            try {
+                console.log("Loading expected PIN from card data...");
+                
+                var cardPIN = GrgDataPool.GetData("PIN");
+                alert("Retrieved PIN from GrgDataPool: " + cardPIN);
+
+                if (cardPIN && cardPIN.length > 0) {
+                    expectedPIN = cardPIN;
+                    console.log("Using dynamic PIN for validation");
+                } else {
+                    console.log("No PIN found in card data, using default PIN: " + expectedPIN);
+                }
+            } catch (e) {
+                console.log("Error loading card PIN: " + e.message);
+                console.log("Using default PIN: " + expectedPIN);
+            }
         }
 
         function addDigit(digit) {
@@ -212,14 +238,15 @@
                 enteredPIN += digit;
                 updatePINDisplay();
 
-                if (GrgApp) {
+                try {
                     GrgApp.LogEvent("PIN digit entered");
+                } catch (e) {
+                    console.log("LogEvent error: " + e.message);
                 }
             }
         }
 
         function updatePINDisplay() {
-            // Show asterisks instead of actual digits
             var display = "";
             for (var i = 0; i < enteredPIN.length; i++) {
                 display += "*";
@@ -232,8 +259,10 @@
             updatePINDisplay();
             document.getElementById("warningText").innerText = "";
 
-            if (GrgApp) {
+            try {
                 GrgApp.LogEvent("PIN cleared");
+            } catch (e) {
+                console.log("LogEvent error: " + e.message);
             }
         }
 
@@ -243,18 +272,31 @@
                 return;
             }
 
-            // Check PIN (demo PIN is 1234)
-            if (enteredPIN === "1234") {
+            console.log("Validating entered PIN against expected PIN");
+            console.log("Expected PIN: " + expectedPIN);
+            console.log("Entered PIN: " + enteredPIN);
+
+            // Check PIN against the card's actual PIN
+            if (enteredPIN === expectedPIN) {
                 // Correct PIN
-                if (GrgDataPool) {
+                console.log("PIN validation successful");
+                
+                try {
                     GrgDataPool.SetData("PINValidated", "true");
                     GrgDataPool.SetData("PINAttempts", "0");
+                } catch (e) {
+                    console.log("Error setting PIN validation data: " + e.message);
                 }
 
-                if (GrgApp) {
+                try {
                     GrgApp.LogEvent("PIN validated successfully");
-                    
                     GrgApp.LoadState("141");
+                } catch (e) {
+                    console.log("Error transitioning to state 141: " + e.message);
+                    // Fallback to parent
+                    if (window.parent && window.parent.loadState) {
+                        window.parent.loadState("141");
+                    }
                 }
 
                 clearTimeout(timeoutTimer);
@@ -262,18 +304,27 @@
             } else {
                 // Wrong PIN
                 pinAttempts++;
+                console.log("Incorrect PIN. Attempt " + pinAttempts + " of 3");
 
                 if (pinAttempts >= 3) {
                     // Card retained
                     document.getElementById("warningText").innerText = "Card retained - too many attempts";
+                    console.log("Card retained after 3 failed attempts");
 
-                    if (GrgApp) {
+                    try {
                         GrgApp.LogEvent("Card retained after 3 failed PIN attempts");
+                    } catch (e) {
+                        console.log("LogEvent error: " + e.message);
                     }
 
                     setTimeout(function () {
-                        if (GrgApp) {
+                        try {
                             GrgApp.LoadState("000");
+                        } catch (e) {
+                            console.log("Error returning to idle: " + e.message);
+                            if (window.parent && window.parent.loadState) {
+                                window.parent.loadState("000");
+                            }
                         }
                     }, 3000);
 
@@ -281,8 +332,10 @@
                     document.getElementById("warningText").innerText =
                         "Incorrect PIN. Attempts remaining: " + (3 - pinAttempts);
 
-                    if (GrgDataPool) {
+                    try {
                         GrgDataPool.SetData("PINAttempts", pinAttempts.toString());
+                    } catch (e) {
+                        console.log("Error setting PIN attempts: " + e.message);
                     }
 
                     enteredPIN = "";
@@ -292,14 +345,23 @@
         }
 
         function cancelTransaction() {
-            if (GrgApp) {
+            console.log("Transaction cancelled by user");
+            
+            try {
                 GrgApp.LogEvent("Transaction cancelled by user");
+            } catch (e) {
+                console.log("LogEvent error: " + e.message);
             }
 
             clearTimeout(timeoutTimer);
 
-            if (GrgApp) {
+            try {
                 GrgApp.LoadState("000");
+            } catch (e) {
+                console.log("Error returning to idle: " + e.message);
+                if (window.parent && window.parent.loadState) {
+                    window.parent.loadState("000");
+                }
             }
         }
 
@@ -314,9 +376,16 @@
         }
 
         function OnTimeout() {
-            if (GrgApp) {
+            console.log("PIN entry timeout");
+            
+            try {
                 GrgApp.LogEvent("PIN entry timeout");
                 GrgApp.LoadState("000");
+            } catch (e) {
+                console.log("Error handling timeout: " + e.message);
+                if (window.parent && window.parent.loadState) {
+                    window.parent.loadState("000");
+                }
             }
         }
     </script>
