@@ -186,9 +186,19 @@
 
                     GrgDataPool = {
                         SetData: function (k, v) {
-                            log("ActiveX Data set: " + k + " = " + v);
-                            if (testGrgDataPool.SetData) {
-                                return testGrgDataPool.SetData(k, v);
+                            log("=== DIRECT CALL TEST ===");
+                            log("Attempting to call SetData directly despite 'unknown' type...");
+
+                            try {
+                                // Try calling the method anyway
+                                var result = testGrgDataPool.SetData(k, v);
+                                log("SUCCESS: SetData returned " + result);
+                                return result;
+                            } catch (e) {
+                                log("FAILED: " + e.message);
+                                log("Error number: " + e.number);
+                                log("Error description: " + (e.description || "none"));
+                                throw e;
                             }
                         },
                         GetData: function (k) {

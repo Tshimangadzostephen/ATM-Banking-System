@@ -5,84 +5,109 @@ using System.Runtime.InteropServices;
 namespace ATMBankingSystem.GrgControls
 {
     /// <summary>
-    /// Mock GrgDataPool Control - Manages session data
-    /// This acts like a mini database for the ATM session
+    /// COM Interface for GrgDataPool
+    /// </summary>
+    [ComVisible(true)]
+    [Guid("D3456789-ABCD-EF01-2345-6789ABCDEF01")]
+    [InterfaceType(ComInterfaceType.InterfaceIsDual)]
+    public interface IGrgDataPool
+    {
+        [DispId(1)]
+        int SetData(string key, string value);
+
+        [DispId(2)]
+        object GetData(string key);
+
+        [DispId(3)]
+        int ClearData();
+
+        [DispId(4)]
+        string GetTransactionData();
+
+        [DispId(5)]
+        string HelloWorld();
+
+        [DispId(6)]
+        bool HasKey(string key);
+
+        [DispId(7)]
+        int GetCount();
+
+        [DispId(8)]
+        int RemoveData(string key);
+    }
+}
+
+namespace ATMBankingSystem.GrgControls
+{
+    /// <summary>
+    /// Mock GrgDataPool Control with explicit interface
     /// </summary>
     [ComVisible(true)]
     [Guid("C2345678-9ABC-DEF0-1234-56789ABCDEF0")]
-    [ClassInterface(ClassInterfaceType.AutoDual)]
+    [ClassInterface(ClassInterfaceType.None)]  // Use only the explicit interface
     [ProgId("ATMBankingSystem.GrgDataPool")]
-    public class MockGrgDataPool
+    public class MockGrgDataPool : IGrgDataPool
     {
-        // Store all session data in a dictionary (like a simple database)
         private Dictionary<string, string> dataPool = new Dictionary<string, string>();
 
-        /// <summary>
-        /// Store a value with a key
-        /// </summary>
+        public string HelloWorld()
+        {
+            return "Hello from C#!";
+        }
+
         public int SetData(string key, string value)
         {
             try
             {
-                //Console.WriteLine("[GrgDataPool] Setting: " + key + " = " + value);
                 System.Diagnostics.Debug.WriteLine("[GrgDataPool] Setting: " + key + " = " + value);
-
                 dataPool[key] = value;
-                return 0; // Success
+                return 0; // S_OK (success)
             }
             catch (Exception ex)
             {
-                Console.WriteLine("[GrgDataPool] ERROR: " + ex.Message);
-                return -1; // Error
+                System.Diagnostics.Debug.WriteLine("[GrgDataPool] ERROR: " + ex.Message);
+                return unchecked((int)0x80004005); // E_FAIL
             }
         }
 
-        /// <summary>
-        /// Get a value by its key
-        /// </summary>
         public object GetData(string key)
         {
             try
             {
                 if (dataPool.ContainsKey(key))
                 {
-                    Console.WriteLine("[GrgDataPool] Getting: " + key + " = " + dataPool[key]);
+                    System.Diagnostics.Debug.WriteLine("[GrgDataPool] Getting: " + key + " = " + dataPool[key]);
                     return dataPool[key];
                 }
                 else
                 {
-                    Console.WriteLine("[GrgDataPool] Key not found: " + key);
+                    System.Diagnostics.Debug.WriteLine("[GrgDataPool] Key not found: " + key);
                     return null;
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine("[GrgDataPool] ERROR: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("[GrgDataPool] ERROR: " + ex.Message);
                 return null;
             }
         }
 
-        /// <summary>
-        /// Clear all stored data
-        /// </summary>
         public int ClearData()
         {
             try
             {
-                Console.WriteLine("[GrgDataPool] Clearing all data");
+                System.Diagnostics.Debug.WriteLine("[GrgDataPool] Clearing all data");
                 dataPool.Clear();
                 return 0; // Success
             }
             catch (Exception ex)
             {
-                Console.WriteLine("[GrgDataPool] ERROR: " + ex.Message);
-                return -1; // Error
+                System.Diagnostics.Debug.WriteLine("[GrgDataPool] ERROR: " + ex.Message);
+                return unchecked((int)0x80004005); // E_FAIL
             }
         }
 
-        /// <summary>
-        /// Get all transaction data as JSON string
-        /// </summary>
         public string GetTransactionData()
         {
             try
@@ -97,35 +122,26 @@ namespace ATMBankingSystem.GrgControls
                 json += "  \"ATMId\": \"ATM001\"\n";
                 json += "}";
 
-                Console.WriteLine("[GrgDataPool] Transaction data: " + json);
+                System.Diagnostics.Debug.WriteLine("[GrgDataPool] Transaction data: " + json);
                 return json;
             }
             catch (Exception ex)
             {
-                Console.WriteLine("[GrgDataPool] ERROR: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("[GrgDataPool] ERROR: " + ex.Message);
                 return "{}";
             }
         }
 
-        /// <summary>
-        /// Check if a key exists
-        /// </summary>
         public bool HasKey(string key)
         {
             return dataPool.ContainsKey(key);
         }
 
-        /// <summary>
-        /// Get the number of stored items
-        /// </summary>
         public int GetCount()
         {
             return dataPool.Count;
         }
 
-        /// <summary>
-        /// Remove a specific key
-        /// </summary>
         public int RemoveData(string key)
         {
             try
@@ -133,52 +149,66 @@ namespace ATMBankingSystem.GrgControls
                 if (dataPool.ContainsKey(key))
                 {
                     dataPool.Remove(key);
-                    Console.WriteLine("[GrgDataPool] Removed key: " + key);
+                    System.Diagnostics.Debug.WriteLine("[GrgDataPool] Removed key: " + key);
                     return 0; // Success
                 }
                 else
                 {
-                    Console.WriteLine("[GrgDataPool] Key not found: " + key);
+                    System.Diagnostics.Debug.WriteLine("[GrgDataPool] Key not found: " + key);
                     return -2; // Not found
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine("[GrgDataPool] ERROR: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("[GrgDataPool] ERROR: " + ex.Message);
                 return -1; // Error
             }
         }
 
         #region COM Registration
-
         [ComRegisterFunction]
         public static void RegisterClass(string key)
         {
-            var subKey = Microsoft.Win32.Registry.ClassesRoot
-                .OpenSubKey(key.Replace(@"HKEY_CLASSES_ROOT\", ""), true);
-
-            if (subKey != null)
+            try
             {
-                var controlKey = subKey.CreateSubKey("Control");
-                if (controlKey != null)
+                var subKey = Microsoft.Win32.Registry.ClassesRoot
+                    .OpenSubKey(key.Replace(@"HKEY_CLASSES_ROOT\", ""), true);
+
+                if (subKey != null)
                 {
-                    controlKey.Close();
+                    var controlKey = subKey.CreateSubKey("Control");
+                    if (controlKey != null)
+                    {
+                        controlKey.Close();
+                    }
+                    subKey.Close();
                 }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("COM Registration error: " + ex.Message);
             }
         }
 
         [ComUnregisterFunction]
         public static void UnregisterClass(string key)
         {
-            var subKey = Microsoft.Win32.Registry.ClassesRoot
-                .OpenSubKey(key.Replace(@"HKEY_CLASSES_ROOT\", ""), true);
-
-            if (subKey != null)
+            try
             {
-                subKey.DeleteSubKey("Control", false);
+                var subKey = Microsoft.Win32.Registry.ClassesRoot
+                    .OpenSubKey(key.Replace(@"HKEY_CLASSES_ROOT\", ""), true);
+
+                if (subKey != null)
+                {
+                    subKey.DeleteSubKey("Control", false);
+                    subKey.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("COM Unregistration error: " + ex.Message);
             }
         }
-
         #endregion
     }
 }
