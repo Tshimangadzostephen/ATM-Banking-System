@@ -6,7 +6,7 @@
 
 A comprehensive ATM (Automated Teller Machine) banking system simulator built with HTML/JavaScript for Windows HTA (HTML Application) environment. This project implements a complete ATM state machine with realistic transaction workflows, security features, and device simulations.
 
-![ATM Simulator Demo](docs/images/demo.gif)
+![ATM Simulator Demo](docs/images/Animation.gif)
 
 ## 📋 Table of Contents
 
