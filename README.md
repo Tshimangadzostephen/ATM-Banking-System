@@ -658,7 +658,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 ```
 MIT License
 
-Copyright (c) 2024 [Your Name]
+Copyright (c) 2025 Tshimangadzo Munzhelele
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -727,7 +727,7 @@ This simulator provides a realistic ATM banking experience with complete transac
 ### Core Banking Transactions
 - **Cash Withdrawal**: Full workflow from card insertion to cash dispensing
 - **Balance Inquiry**: Real-time account balance checking
-- **Fast Cash**: Quick withdrawal with preset amounts (£20, £40, £60, £100)
+- **Fast Cash**: Quick withdrawal with preset amounts (R20, R40, R60, R100)
 - **Mini Statement**: Display recent transaction history
 
 ### Transaction Workflows
