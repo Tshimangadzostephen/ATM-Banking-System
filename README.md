@@ -40,8 +40,8 @@ This simulator provides a realistic ATM banking experience with complete transac
 
 - **Cash Withdrawal**
   - Full workflow from card insertion to cash dispensing
-  - Amount validation (£10-£500, multiples of £5)
-  - Note breakdown calculation (£20, £10, £5 notes)
+  - Amount validation (R10-R500, multiples of R5)
+  - Note breakdown calculation (R20, R10, R5 notes)
   
 - **Balance Inquiry**
   - Real-time account balance display
@@ -50,7 +50,7 @@ This simulator provides a realistic ATM banking experience with complete transac
   
 - **Fast Cash**
   - Quick withdrawal with preset amounts
-  - Pre-configured options: £20, £40, £60, £100
+  - Pre-configured options: R20, R40, R60, R100
   - Expedited processing flow
   
 - **Mini Statement**
@@ -65,7 +65,7 @@ This simulator provides a realistic ATM banking experience with complete transac
 | PIN Masking | PIN displayed as dots (●●●●) during entry |
 | Attempt Limit | 3 incorrect attempts → card retention |
 | Session Timeout | 30-60 second idle timeouts per state |
-| Daily Limits | £500 maximum daily withdrawal |
+| Daily Limits | R500 maximum daily withdrawal |
 | Balance Check | Validates available funds before dispensing |
 | Card Retention | Security violation triggers card capture |
 
